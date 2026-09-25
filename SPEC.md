@@ -38,17 +38,19 @@ This repository is public. It holds only generic parts: `google-mcp/`,
 workflow manifests that take rules and state as input, scripts, this
 specification, and example rules whose senders use reserved example domains.
 
-**Personal data never enters it:** real rules (`rules/mail.edn` names the
+**Personal data never enters it:** real rules (`rules/mail.json` names the
 owner's vendors and correspondents), workflow state, predictions, reports,
 traces, env files, OAuth tokens, and the ntfy topic. On the box they live in a
 private directory outside the checkout (`$PTC_ASSISTANT_DATA`, mode 0700),
-which the cron scripts pass to workflows through `--input`/`--output`.
+which the cron scripts pass to workflows through
+`--private-input`/`--private-output`.
 
 - **Rules** are versioned in a private git repository at
   `$PTC_ASSISTANT_DATA/rules/` (no remote, or a private one). Accepting a
-  proposal means committing its diff there. This public repository carries
-  `rules/mail.example.edn`, which documents the schema with senders at
-  reserved example domains.
+  proposal means committing its diff there. The rules are JSON, because ptc
+  input is a JSON object and JSON needs no conversion step. This public
+  repository carries `rules/mail.example.json`, which documents the schema
+  with senders at reserved example domains.
 - **Reports** and issue drafts live in `$PTC_ASSISTANT_DATA/reports/`, always.
 
 Guardrails, both required to pass:
@@ -108,18 +110,22 @@ Rules:
 
 ### Workflows (phase 1, run by cron via `ptc run`)
 
-Each is a ptc manifest in `workflows/<name>/`, run with
-`--trace-dir` and `--inspect` so normal and private traces are written.
+Each is a ptc manifest in `workflows/<name>/`, run with `--trace-dir` and
+`--inspect`. **Every run is private**: even the rules name the people the
+owner writes to, so every run uses `--private-input` and `--private-output`.
+The output file is owner-only and kept off stdout, and the run writes private
+traces.
 
 **State moves through files, never through filesystem grants.** A cron script
-per workflow assembles the input (rules, previous predictions, previous
-ledger) into one JSON file passed with `--input`, and stores the result
-written by `--output`. Workflows hold no filesystem capability and no
-`ptc-fs-mcp`. `--input` accepts only manifest-relative paths, so each
-workflow's `state/` directory is a symlink into `$PTC_ASSISTANT_DATA` (the
-link target is outside the checkout; `state/` is git-ignored). Verify in
-phase 0 that ptc's input confinement accepts that link; if it does not, the
-cron script copies the input in and the output out.
+per workflow assembles the input (rules, cursor, correspondents cache,
+previous predictions, previous ledger) into one JSON file under
+`$PTC_ASSISTANT_DATA` and passes its absolute path with `--private-input`
+(ptc resolves an application-relative path first, then an absolute one; see
+ptc_runner `docs/reference/cli.md`). Workflows hold no filesystem capability
+and no `ptc-fs-mcp`. `--private-output` never replaces an existing file, so
+each run writes a new file (`<name>.<run-id>.json`), and the cron script
+renames it into place (for example, over `ledger.json`) only after the run
+succeeds. The parent of the output must be reached without a symlink.
 
 **Delivery (phase 1): no mail content leaves the box for delivery.** The
 digest is rendered as a page served only on the tailnet (`tailscale serve`).
@@ -137,11 +143,24 @@ exclusive file lock around token refresh and writes the token file
 atomically, so a manual run during cron cannot corrupt it.
 
 1. **Daily digest** (≈07:00). Calendar summary for today and tomorrow
-   (overlaps, external attendees, events without agenda); person mail that
-   likely needs action; bulk mail as counts per sender; receipt candidates.
-   Output: a JSON result plus a rendered page, stored under
-   `workflows/digest/state/<date>.json`, served on the tailnet, announced by a
-   content-free push. Every classification the digest makes is also recorded
+   (overlaps, events without agenda, and two attendee signals: `with_others`,
+   meaning someone besides the owner attends, and `new_people`, the attendees
+   not in the known-correspondents set; a personal account has no domain
+   boundary, so there is no "external" flag); person mail that likely needs
+   action; bulk mail as counts per sender; receipt candidates. Calendars: the
+   primary one plus the ids listed under `calendars.extra_ids` in the private
+   rules (for example, a shared family calendar); subscribed calendars such as
+   holidays are not read.
+   **Window:** a timestamp cursor in state (not Gmail's `historyId`, which
+   expires after about a week and needs the History API). Each run searches
+   `after:<cursor − 1 h>` and removes duplicates by message id. The first run
+   covers the last 24 h. After missed days it covers at most 7 days, and the
+   digest states how many days were skipped. The cursor advances only when
+   the run succeeds.
+   Output: a JSON result stored as `$PTC_ASSISTANT_DATA/digest/<date>.json`
+   plus a static HTML page rendered from it into `$PTC_ASSISTANT_DATA/www/`,
+   served on the tailnet, and announced by a content-free push. The digest
+   is in English. Every classification the digest makes is also recorded
    as a prediction (below).
 2. **Subscription ledger** (daily, incremental; week 4). Program narrows mail to
    likely receipts and renewal notices and extracts
@@ -152,13 +171,14 @@ atomically, so a manual run during cron cannot corrupt it.
    "unparsed". A chat model extracts only those, under a strict JSON schema,
    and only once a ZDR chat provider is verified (see Models). The program
    deduplicates and merges
-   into `workflows/ledger/state/ledger.json`, flagging new vendors, price changes, and
-   subscriptions with no receipt in their expected period. The previous
-   ledger arrives through `--input`; the new ledger leaves through `--output`.
-3. **Oracle** (daily). Scores predictions that are exactly 5 days old
-   against the owner's observed behaviour (definition under Oracle) and
-   appends precision/recall to
-   `workflows/oracle/state/<date>.json` (below).
+   into `$PTC_ASSISTANT_DATA/ledger/ledger.json`, flagging new vendors, price
+   changes, and subscriptions with no receipt in their expected period. The
+   previous ledger arrives as input; the new ledger is written to a new file
+   and renamed into place by the cron script.
+3. **Oracle** (daily). Scores every prediction that is at least 5 days old
+   and not yet scored against the owner's observed behaviour (definition
+   under Oracle), records which predictions it scored, and writes
+   precision/recall to `$PTC_ASSISTANT_DATA/oracle/<date>.json`.
 
 Design principle: programs filter and aggregate. Every model question
 concerns exactly one message; many such questions may travel in one batched
@@ -171,10 +191,13 @@ Layered, cheapest first. Each layer must beat the previous one on the oracle
 before it is kept.
 
 1. **Rules (week 1, no model).** Data in the private rules repository
-   (`$PTC_ASSISTANT_DATA/rules/mail.edn`; schema in `rules/mail.example.edn`):
+   (`$PTC_ASSISTANT_DATA/rules/mail.json`; schema in `rules/mail.example.json`):
    - bulk: `List-Unsubscribe` header, `noreply`-style senders, Gmail
      Promotions/Social/Updates categories → counted per sender, not listed;
-   - person: sender the owner has written to before (from sent mail);
+   - person: sender in the known-correspondents set. The set is cached in
+     state. The first run builds it from sent mail of the last 365 days; each
+     later run adds recipients of sent mail after the cursor. Only recipient
+     headers are fetched (`format=metadata`, `metadataHeaders=To,Cc`);
    - Gmail's `IMPORTANT` label (Google's own classifier, trained on the
      owner's behaviour; see the bias note under Oracle);
    - awaiting reply: last message in the thread is not the owner's and is
@@ -182,8 +205,19 @@ before it is kept.
    - receipt candidates: sender/subject patterns (English and Swedish, e.g.
      `receipt|invoice|renewal|subscription|payment|kvitto|faktura`) and an
      amount/currency pattern.
-2. **Decision model on the residue (week 3).** Mail no rule settles goes to a
-   `decision/request` provider (first backend: Jev via OpenRouter): one
+
+   Every message gets a `needs_action` value from the rules, first match wins:
+   1. bulk → `false` (wins over everything else);
+   2. person and awaiting reply → `true`;
+   3. `IMPORTANT` (and not bulk) → `true`;
+   4. anything else → `false`, marked `settled: false`.
+
+   `IMPORTANT` is too broad to override the bulk check.
+2. **Decision model (week 3).** Every message, settled or not, goes to a
+   `decision/request` provider in shadow mode (first backend: Jev via
+   OpenRouter); with metadata only this costs next to nothing. The digest shows
+   the model's answer only for unsettled messages, and only once the model has
+   beaten the rules on the oracle (see Bias). One
    question per message, a boolean "needs the owner's action" and a choice
    over the committed categories, batched in one request. The provider returns
    probabilities; the workflow applies a visible threshold in PTC-Lisp.
@@ -199,7 +233,9 @@ before it is kept.
 - *needs action* = the owner replied within 72 h of receipt, or starred it;
 - *no action* = neither, and the message was archived or read by day 5;
 - *undecided* = still unread and unarchived on day 5; excluded from scores;
-- predictions are scored when they are exactly 5 days old.
+- predictions are scored once they are at least 5 days old, exactly once; the
+  oracle keeps a record of the scored prediction ids, so a missed run delays
+  scoring instead of losing it.
 
 Each digest records its predictions (message id, layer, label, probability).
 
@@ -222,7 +258,7 @@ actions outside Gmail (phone, chat, bank app) look like "no action". So:
   labels, reply rate) for the last 90 days and proposes 6–10 categories plus
   rules. The owner edits them and commits to the private rules repository.
 - Weekly proposal run: from "not sure" items and oracle misses, proposes a
-  diff to the private `mail.edn`, replayed over stored history so the proposal
+  diff to the private `mail.json`, replayed over stored history so the proposal
   carries before/after precision and recall. The owner accepts or rejects.
 
 ### Gateway tools (phase 2)
@@ -254,13 +290,17 @@ server, `google-mcp/`:
 | --- | --- |
 | `search_messages` | ids, thread ids, date, from, to, subject, snippet, label ids, and the headers the rules need (`List-Unsubscribe`, `Precedence`, `Auto-Submitted`) for a Gmail query, paginated and capped |
 | `get_message` | the same fields plus a size-capped plain-text body (only called for extraction) |
-| `list_sent_recipients` | distinct addresses the owner has written to within a window |
+| `list_sent_recipients` | distinct To/Cc addresses of sent mail after a timestamp (fetched with `format=metadata`, `metadataHeaders=To,Cc`) |
 | `list_labels` | label ids and names |
-| `list_events` | events in a time window: time, title, attendees (with external flag), location, has-agenda |
+| `list_events` | events in a time window over the given calendar ids (default primary): time, title, attendee addresses, `with_others`, location, has-agenda |
 | `get_event` | one event in full |
 
-Results are trimmed to what workflows need, so payloads stay small. The
-server holds the Google refresh token itself.
+Results are trimmed to what workflows need, so payloads stay small. Lists
+return at most 100 items per page and 500 in total. The server holds the
+Google refresh token itself. Paths are private runtime configuration, read
+from `GOOGLE_MCP_CLIENT_FILE` (the Desktop client JSON) and
+`GOOGLE_MCP_TOKEN_FILE` (the refresh token), both under
+`$PTC_ASSISTANT_DATA/google/`.
 
 ### Google OAuth
 
@@ -316,7 +356,7 @@ pending production step, and private credential location are recorded in
 
 ### Traces
 
-- All workflow runs write normal and private traces to
+- All workflow runs are private and write private traces to
   `$PTC_ASSISTANT_DATA/ptc/traces` (a ptc project artifact root), on an
   encrypted disk.
 - Rolling window: 30 days and 5 GB, whichever is hit first, enforced by a
@@ -328,14 +368,21 @@ pending production step, and private credential location are recorded in
 
 ### Analysis
 
-- Nightly: `ptc repl --profile private-run-analysis-v2 --private-unattended`
-  over the last day's traces, producing `$PTC_ASSISTANT_DATA/reports/<date>.md`
-  and, for ptc_runner defects, draft issues in
-  `$PTC_ASSISTANT_DATA/reports/drafts/`.
-- The analysis model reads private traces, which contain mail content, so the
-  ZDR rule applies to it exactly as to workflows (OpenRouter account set to
-  "ZDR endpoints only" enforces this for every call). Until a ZDR chat model is
-  verified, the analysis reads normal traces only.
+- The analyst is whatever reads the traces: an OpenRouter model, or an agent
+  such as Claude or Codex driving the REPL. Any of them would read mail
+  content from private traces. So there are two levels:
+  - **Nightly, automatic, no model.** A fixed PTC-Lisp program runs over the
+    last day's private traces (`ptc repl --profile private-run-analysis-v2
+    --private-unattended`) and writes `$PTC_ASSISTANT_DATA/reports/<date>.md`
+    with no mail content: error codes, limit hits, durations, sizes, failed
+    steps, counts. Any model or agent may read that report and draft
+    ptc_runner issues from it into `$PTC_ASSISTANT_DATA/reports/drafts/`.
+  - **Deeper, manual.** Model-driven investigation of private traces is
+    started only by the owner, knowing it reads private data.
+- In phase 1 the workflow programs are fixed manifests, not model-written, so
+  program source is safe to share alongside the report.
+- Every run stays private; no step is split into a separate normal run for
+  the sake of analysis.
 - **Nothing is filed automatically.** A draft becomes a public ptc_runner
   issue only after the owner reads it, confirms it is domain-blind and quotes
   no mail content, and files it (or tells an agent to). The draft's cited
@@ -362,8 +409,8 @@ pending production step, and private credential location are recorded in
   pinned `typesafe/jev-1.13`, OpenRouter input/output logging off.
 - Chat backend: candidate `deepseek/deepseek-v4-flash`, usable for mail
   content only after a ZDR provider for it is verified on OpenRouter's ZDR
-  endpoint list. Until then: the ledger stays regex-only, the analysis reads
-  normal traces only, and no summaries are generated. Also the comparison
+  endpoint list. Until then: the ledger stays regex-only and no summaries are
+  generated. Also the comparison
   backend for decisions.
 
 ## Security
@@ -374,7 +421,7 @@ pending production step, and private credential location are recorded in
 - **Secrets:** never in this repository. Env files and the Google refresh
   token stay on the box; Worker secrets stay in Cloudflare.
 - **Filesystem:** no workflow holds a filesystem capability; state moves
-  through `--input`/`--output`. The only readers of `$PTC_ASSISTANT_DATA` are
+  through `--private-input`/`--private-output`. The only readers of `$PTC_ASSISTANT_DATA` are
   the cron scripts and the analysis REPL (which reads the trace directory
   through its own profile). If a filesystem grant is ever added, it names a
   directory under `$PTC_ASSISTANT_DATA`, never the home directory (the box
@@ -388,7 +435,7 @@ pending production step, and private credential location are recorded in
 | Phase | Delivers | Exit criterion | ptc_runner change |
 | --- | --- | --- | --- |
 | 0 — probes | Desktop OAuth client and consent in Testing with the owner as test user; `google-mcp` with `search_messages` and `list_events`; one `ptc run` manifest that calls both over stdio with trimmed results | The manifest returns today's events and 50 message headers through ptc before the Testing token expires | none |
-| 1 — private | Publish the OAuth app In production and obtain fresh consent; build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model on the residue; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
+| 1 — private | Publish the OAuth app In production and obtain fresh consent; build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model in shadow mode; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
 | 2 — public | One real claude.ai request logged through a throwaway tunnel (confirms 2026-07-28 and the OAuth discovery flow); Worker OAuth, tunnel, gateway serving `digest.today` and `ledger.query`; served-run traces | Digest read from claude.ai on the phone | served-run traces |
 | 3 — code mode | A served tool that runs model-written PTC-Lisp, read-only over mail, calendar, and ledger; served analysis workflow | Owner uses it for ad-hoc questions weekly | code-mode surface (own issue and security review) |
 
@@ -422,7 +469,7 @@ provider that actually served each call).
 ## Open questions
 
 1. Phase 2: how a *served* tool (`digest.today`, `ledger.query`) reads stored
-   state, since a served call has no cron script to assemble `--input`.
+   state, since a served call has no cron script to assemble its input.
    Candidate: the tool is served by a small read-only state tool in
    `google-mcp` or a sibling server.
 2. (Resolved 2026-09-25) The official Google MCP preview needs a Workspace
@@ -437,6 +484,13 @@ provider that actually served each call).
    OpenRouter traffic — required before the snippet or any body goes to Jev.
 7. (Decided 2026-09-25) Oracle window and bias: see Oracle.
 8. (Decided 2026-09-25) Timezone Europe/Stockholm.
+9. (Decided 2026-09-25) Pre-implementation review: JSON rules; every run
+   private with absolute `--private-input`/`--private-output` paths and
+   rename-into-place; a model-free nightly analysis; a timestamp cursor for
+   the digest window; oracle scores unscored predictions at least 5 days old;
+   an explicit `needs_action` order for the rules and a decision model in
+   shadow mode on every message; a cached correspondents set; `with_others`
+   and `new_people` in place of "external"; primary plus configured calendars.
 
 ## Related prior work
 

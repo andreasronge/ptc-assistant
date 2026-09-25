@@ -1,0 +1,26 @@
+{
+  "_comment": "Schema example for the private rules file ($PTC_ASSISTANT_DATA/rules/mail.json). Addresses use reserved example domains only; the real file never enters this repository.",
+  "version": 1,
+  "bulk": {
+    "headers": ["List-Unsubscribe", "Precedence", "Auto-Submitted"],
+    "sender_patterns": ["^no-?reply@", "^newsletter@"],
+    "gmail_categories": ["CATEGORY_PROMOTIONS", "CATEGORY_SOCIAL", "CATEGORY_UPDATES"]
+  },
+  "person": {"known_correspondents_window_days": 365},
+  "important": {"gmail_label": "IMPORTANT"},
+  "receipt": {
+    "subject_patterns": ["(?i)receipt|invoice|renewal|subscription|payment|kvitto|faktura"],
+    "amount_pattern": "(?i)(\\d+[.,]\\d{2})\\s*(kr|sek|eur|usd|€|\\$)",
+    "vendors": {
+      "billing@streaming.example": "Example Streaming",
+      "invoices@cloud.example.com": "Example Cloud"
+    }
+  },
+  "calendars": {"extra_ids": ["family-calendar-id@group.calendar.example"]},
+  "categories": {
+    "receipt": "Payment receipt or invoice",
+    "renewal": "Upcoming subscription renewal",
+    "personal": "Written by a person to the owner",
+    "bulk": "Newsletter or marketing"
+  }
+}

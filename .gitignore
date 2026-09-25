@@ -9,7 +9,7 @@ releases/
 inspection/
 *.ptcins
 *.jsonl
-rules/mail.edn
+rules/mail.json
 token*.json
 credentials*.json
 client_secret*.json
