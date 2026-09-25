@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: 22
       - run: node --test scripts/test/*.test.mjs
-      - run: shellcheck -x scripts/build-ptc.sh scripts/deploy.sh scripts/digest.sh scripts/lib.sh scripts/notify.sh scripts/probe.sh scripts/prune.sh scripts/run-daily.sh
+      - run: shellcheck -x scripts/build-ptc.sh scripts/deploy.sh scripts/digest.sh scripts/install-timers.sh scripts/lib.sh scripts/notify.sh scripts/probe.sh scripts/prune.sh scripts/run-daily.sh
