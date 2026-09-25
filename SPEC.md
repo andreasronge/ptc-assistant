@@ -419,13 +419,14 @@ provider that actually served each call).
    account; replaced by the own `google-mcp` server.
 3. Workers VPC availability, versus a public tunnel hostname plus the bearer
    and an Access service token.
-4. (Decided 2026-09-25) Delivery: tailnet-only page plus content-free ntfy
-   push.
+4. (Decided 2026-09-25) Delivery: tailnet-only page plus content-free ntfy.sh
+   push; the owner's phone runs Tailscale. Self-hosted ntfy only if push
+   content is ever wanted.
 5. Whether a push is still wanted once `digest.today` exists (phase 2).
 6. Written confirmation from Typesafe or OpenRouter that ZDR covers
    OpenRouter traffic — required before the snippet or any body goes to Jev.
 7. (Decided 2026-09-25) Oracle window and bias: see Oracle.
-8. Timezone Europe/Stockholm is assumed; confirm.
+8. (Decided 2026-09-25) Timezone Europe/Stockholm.
 
 ## Related prior work
 
