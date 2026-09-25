@@ -6,7 +6,10 @@ Cloud setup and its current status.
 
 This is a public repository. Keep OAuth client JSON, client secrets, refresh
 tokens, real mail/calendar data, rules, traces, reports, and private env files
-outside the checkout. Use `$PTC_ASSISTANT_DATA` on the private box. Do not paste
+outside the checkout. Use `$PTC_ASSISTANT_DATA` on the private box.
+Host-specific deployment facts (host names, SSH aliases, tailnet URLs, paths)
+belong in the private `$PTC_ASSISTANT_DATA/DEPLOYMENT.md` on that host, not
+in this repository; [docs/box.md](docs/box.md) stays generic. Do not paste
 credential values into code, documentation, tests, issues, logs, tool output,
 or pull requests. An OAuth client ID and Google Cloud project ID may be public,
 but there is no need to copy the client ID into source files.

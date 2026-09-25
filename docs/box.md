@@ -1,5 +1,12 @@
 # Running on the box
 
+This is the generic procedure for any private Linux host. The facts of one
+concrete deployment (host name, SSH alias, tailnet URL, paths, what else runs
+on the host, dates such as token expiry) are **not** recorded in this public
+repository: keep them in `$PTC_ASSISTANT_DATA/DEPLOYMENT.md` on the host,
+beside the data they describe, and update that file whenever the deployment
+changes.
+
 The private box is Ubuntu 24.04. It needs `git`, `mise` (for the pinned
 Erlang/Elixir), Node.js 20.19 or newer, `pnpm`, `jq`, `rsync`, and `flock`.
 All private state lives in `$PTC_ASSISTANT_DATA` (mode `0700`), outside this
@@ -8,7 +15,12 @@ credential files and the environment file that sets the paths.
 
 ## Build, deploy, run
 
+Work on the host over SSH (through Tailscale), in a git clone of this
+repository:
+
 ```sh
+ssh <host>
+cd <checkout> && git pull --ff-only
 source <private env file>
 scripts/build-ptc.sh        # pinned ptc_runner -> releases/<sha>/, releases/current
 scripts/deploy.sh           # workflows + google-mcp -> $PTC_ASSISTANT_DATA/app/
@@ -35,6 +47,7 @@ the app under a running workflow.
 ## Layout under `$PTC_ASSISTANT_DATA`
 
 ```text
+DEPLOYMENT.md           this deployment's host-specific record (private)
 app/                    deployed copy of workflows/ and google-mcp/
 <name>.ptc-project.json one per workflow, written by deploy
 ptc/                    shared artifact root: traces/, inspection/, envelopes/, results/, keep/
@@ -47,21 +60,34 @@ probe/                  probe inputs and results
 
 ## Delivery
 
-Serve the page on the tailnet only, for example
-`tailscale serve --bg --set-path /digest "$PTC_ASSISTANT_DATA/www"`, and never
-with `tailscale funnel`. Put these in the private env file:
+Serve the page on the tailnet only, and never with `tailscale funnel`:
+
+```sh
+sudo tailscale serve --bg --set-path /digest "$PTC_ASSISTANT_DATA/www"
+tailscale serve status   # other handlers on the host must be unchanged
+```
+
+`--set-path` adds a handler beside any the host already serves. `tailscaled`
+reads the owner-only files as root. Put these in the private env file:
 
 - `DIGEST_URL`: the tailnet URL of `index.html`, used as the push's click link.
 - `NTFY_TOPIC`: the secret ntfy.sh topic. The push says only "Digest ready",
   "Reconnect Google", or "Digest run failed". Without it, nothing is sent.
 
-## Cron
+## Schedule
 
-```cron
-CRON_TZ=Europe/Stockholm
-45 6 * * * . <private env file> && <checkout>/scripts/run-daily.sh >> "$PTC_ASSISTANT_DATA/cron.log" 2>&1
-30 3 * * * . <private env file> && <checkout>/scripts/prune.sh >> "$PTC_ASSISTANT_DATA/cron.log" 2>&1
+```sh
+sudo loginctl enable-linger "$USER"   # user timers run without a login session
+scripts/install-timers.sh <private env file>
+systemctl --user list-timers 'ptc-assistant-*'
+journalctl --user -u ptc-assistant-daily
 ```
+
+`scripts/install-timers.sh` writes systemd user units that run
+`scripts/run-daily.sh` at 06:45 and `scripts/prune.sh` at 03:30,
+Europe/Stockholm. The timers are persistent, so a run the host missed while
+it was down happens at the next boot. `--remove` uninstalls them. To run the
+digest now: `systemctl --user start ptc-assistant-daily`.
 
 `scripts/prune.sh` keeps 30 days and at most 5 GB of runs. To keep a run past
 the window, create an empty `ptc/keep/<run_ref>`. `run-daily.sh` checks the
