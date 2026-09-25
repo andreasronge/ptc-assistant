@@ -1,5 +1,5 @@
 (ns probe.workflow
-  "Phase 0 probe: today's events and one page of message headers through google-mcp.")
+  "Phase 0 probe: events in the input window and one page of message headers through google-mcp.")
 
 (defn- returned-value [outcome]
   (if (= :returned (get outcome :outcome))

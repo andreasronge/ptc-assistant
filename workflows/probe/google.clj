@@ -13,7 +13,10 @@
 
 (defn probe [params]
   (let [window {"time_min" (get params "time_min") "time_max" (get params "time_max")}
+        window (if (get params "calendar_ids")
+                 (assoc window "calendar_ids" (get params "calendar_ids"))
+                 window)
         messages (value! (tool/google.search {"query" (get params "query") "limit" (get params "limit")}))]
-    {"events" (mapv #(select-keys % ["start" "end" "title" "with_others" "has_agenda"]) (all-events window))
+    {"events" (all-events window)
      "messages" (mapv #(select-keys % ["date" "from_address" "subject" "label_ids" "list_unsubscribe"])
                       (get messages "items"))}))

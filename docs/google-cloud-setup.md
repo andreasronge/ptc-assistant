@@ -31,6 +31,17 @@ days unless the app requests only basic identity scopes; this app requests
 Gmail and Calendar scopes. Repeat consent if another Testing-mode run is needed
 after the token expires. Do not use the Testing token for recurring daily runs.
 
+A follow-up live Calendar check on 25 September used private probe inputs and
+outputs. The next-seven-days window returned four timed events from a shared
+calendar and none from the primary calendar. A past-year window returned 138
+events across those two calendars. A separate read-only Google API fetch
+matched all 138 probe event IDs, start/end values, attendee lists, and derived
+flags. This included 33 expanded recurring instances, 10 events with attendees,
+and timed events with both `+01:00` and `+02:00` Stockholm offsets. The probe
+now accepts `calendar_ids` and retains the complete shaped event records in
+its private output; only aggregate counts were printed. The shared calendar's
+identifier and all real event data remain outside the checkout.
+
 The Branding page has the planned homepage, privacy policy, and terms URLs
 under `https://ptc-runner.dev/ptc-assistant/`. Those pages have been drafted in
 the `ptc_runner` site checkout but have **not been published**. Do not switch
