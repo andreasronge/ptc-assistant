@@ -23,7 +23,7 @@ fi
 
 # 2. Email addresses outside reserved example domains (RFC 2606) and
 #    addresses that are part of public documentation of third parties.
-allowed='@(example\.(com|org|net)|[a-z0-9.-]+\.example|anthropic\.com|typesafe\.ai|users\.noreply\.github\.com)$'
+allowed='@(([a-z0-9.-]+\.)?example\.(com|org|net)|[a-z0-9.-]+\.example|anthropic\.com|typesafe\.ai|users\.noreply\.github\.com)$'
 while IFS= read -r file; do
   [[ -f "$file" ]] || continue
   if [[ "${1:-}" == "--all" ]]; then
