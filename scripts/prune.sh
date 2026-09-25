@@ -4,6 +4,7 @@
 #
 #   scripts/prune.sh            # delete
 #   scripts/prune.sh --dry-run  # preview
+# shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
 
 max_age_days=${PTC_PRUNE_MAX_AGE_DAYS:-30}
@@ -16,7 +17,7 @@ project=$(find "$data" -maxdepth 1 -name '*.ptc-project.json' -print -quit)
   exit 1
 }
 [[ -d "$data/ptc" ]] || exit 0
-mkdir -p -m 700 "$data/ptc/keep"
+mkdir -m 700 "$data/ptc/keep" 2>/dev/null || true
 
 with_lock
 cd "$data"

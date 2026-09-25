@@ -8,6 +8,7 @@
 # PROBE_HOST=fake runs it against the fake Google in google-mcp/test/helpers
 # (no credentials needed). PROBE_CALENDAR_IDS='["primary","<id>"]' and
 # PROBE_DAYS=N widen the calendar check.
+# shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
 
 # RFC 3339 midnight N days from today, with the offset in force at that midnight.

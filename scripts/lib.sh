@@ -1,6 +1,8 @@
+# shellcheck shell=bash
 # Shared by the box scripts. Source it; it sets repo, data, and ptc.
 set -euo pipefail
 
+# shellcheck disable=SC2034 # repo, data, and ptc are for the sourcing script
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 data=${PTC_ASSISTANT_DATA:?PTC_ASSISTANT_DATA must name the private data directory}
 # The pinned build from scripts/build-ptc.sh; PTC_BIN overrides it for development.

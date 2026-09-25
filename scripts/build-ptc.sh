@@ -70,7 +70,7 @@ list() {
 prune_builds() {
   local current dir kept=0
   current=$(current_sha || true)
-  # shellcheck disable=SC2012 # build names are 40 hex digits
+  # shellcheck disable=SC2045 # build names are 40 hex digits, no spaces
   for dir in $(ls -1dt "$releases"/*/ 2>/dev/null); do
     dir=${dir%/}
     if [[ -L "$dir" || ! "$(basename "$dir")" =~ ^[0-9a-f]{40}$ ]]; then continue; fi
@@ -136,6 +136,7 @@ staging="$releases/.build-$sha"
 rm -rf "$staging"
 # deps.get and release in one invocation: a separate prod deps.get skips the
 # Viewer's dependencies (see ptc_runner scripts/package_standalone_release.sh).
+# shellcheck disable=SC1010 # `mix do` is a Mix task, not the shell keyword
 in_toolchain env PTC_SOURCE_REVISION="$sha" PTC_SOURCE_DIRTY=false MIX_ENV=prod \
   mix do deps.get --only prod --check-locked + release ptc_runner --overwrite --path "$staging"
 

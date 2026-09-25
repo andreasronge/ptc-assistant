@@ -9,6 +9,7 @@
 #
 #   scripts/deploy.sh               # refuses a dirty checkout
 #   scripts/deploy.sh --allow-dirty # for development only
+# shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
 
 allow_dirty=false
