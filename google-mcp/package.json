@@ -1,0 +1,32 @@
+{
+  "name": "google-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only Gmail and Google Calendar MCP server over stdio, for ptc-assistant.",
+  "license": "MIT",
+  "author": "Andreas Ronge",
+  "type": "module",
+  "bin": {
+    "google-mcp": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --build --force",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm run build && node --test --test-reporter=spec test/*.test.mjs",
+    "verify": "pnpm run format:check && pnpm run typecheck && pnpm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}

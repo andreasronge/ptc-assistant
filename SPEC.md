@@ -302,6 +302,20 @@ from `GOOGLE_MCP_CLIENT_FILE` (the Desktop client JSON) and
 `GOOGLE_MCP_TOKEN_FILE` (the refresh token), both under
 `$PTC_ASSISTANT_DATA/google/`.
 
+Host installation (`workflows/ptc-host.json`, verified with ptc 0.15.0):
+
+- `data_class` and `accepts_data` are `private_inspection`, the only private
+  class ptc has. Any run that selects `google` is then forced onto the private
+  policy: without `--private-output`, ptc refuses it
+  (`private_destination_required`), so mail cannot reach stdout by mistake.
+- `inherit_environment: true` passes only `HOME LOGNAME PATH SHELL TERM USER`,
+  which `node` needs; the two paths enter as credential bindings.
+- Output schemas are closed objects (ptc reads an object schema without
+  `additionalProperties` as closed); nullable fields use `["string", "null"]`.
+- MCP tools are callable only from a mission, so a model-free workflow reaches
+  them through `kernel/eval-with` over a mission facade (see
+  `workflows/probe/`).
+
 ### Google OAuth
 
 This section describes the target setup. The verified current console state,

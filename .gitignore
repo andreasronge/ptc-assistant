@@ -19,3 +19,7 @@ node_modules/
 
 # Local code-index cache
 graft/
+
+# google-mcp build output
+dist/
+*.tsbuildinfo

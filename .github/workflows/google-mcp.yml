@@ -1,0 +1,26 @@
+name: google-mcp
+on:
+  push:
+    paths: ['google-mcp/**', '.github/workflows/google-mcp.yml']
+  pull_request:
+    paths: ['google-mcp/**', '.github/workflows/google-mcp.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: google-mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: google-mcp/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run verify

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://ptc-runner.dev/schemas/ptc-host-config.schema.json",
+  "install": {
+    "google": {
+      "source": "mcp",
+      "data_class": "private_inspection",
+      "accepts_data": [
+        "private_inspection"
+      ],
+      "installation_revision": "google-mcp-fake-0.1.0",
+      "transport": {
+        "type": "stdio",
+        "command": "node",
+        "cwd": "../google-mcp",
+        "args": [
+          "test/helpers/fake-serve.mjs"
+        ],
+        "inherit_environment": true,
+        "env": {},
+        "start_timeout_ms": 15000
+      },
+      "tools": {
+        "search_messages": {
+          "as": "google.search",
+          "effect": "read",
+          "error_feedback": "bounded"
+        },
+        "list_events": {
+          "as": "google.events",
+          "effect": "read",
+          "error_feedback": "bounded"
+        }
+      },
+      "ceilings": {
+        "timeout_ms": 45000,
+        "max_catalog_tools": 8,
+        "max_result_bytes": 262144
+      }
+    }
+  }
+}
