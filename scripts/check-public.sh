@@ -14,7 +14,7 @@ fi
 status=0
 
 # 1. Paths that only ever hold personal data.
-personal='(^|/)(state|traces|reports|inspection)/|(^|/)rules/mail\.edn$|\.ptcins$|\.jsonl$|(^|/)\.env|client_secret.*\.json$|token.*\.json$'
+personal='(^|/)(state|traces|reports|inspection)/|(^|/)rules/mail\.edn$|\.ptcins$|\.jsonl$|(^|/)\.env|(^|/)(client_secret.*|credentials.*|google-oauth-client|oauth-client.*|token.*)\.json$'
 if bad=$(printf '%s\n' "$files" | grep -E "$personal"); then
   echo "personal-data path must not be committed:" >&2
   printf '  %s\n' $bad >&2

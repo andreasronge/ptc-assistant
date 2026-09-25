@@ -6,6 +6,10 @@ private box and optionally exposed as an OAuth-protected MCP endpoint.
 
 See [SPEC.md](SPEC.md).
 
+Coding assistants should also read [AGENTS.md](AGENTS.md) and the
+[Google Cloud setup and credential guide](docs/google-cloud-setup.md) before
+working on authentication or deployment.
+
 ## Public repository, private data
 
 This repository is public; the owner's mail-derived data never enters it (see

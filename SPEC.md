@@ -264,6 +264,10 @@ server holds the Google refresh token itself.
 
 ### Google OAuth
 
+This section describes the target setup. The verified current console state,
+pending production step, and private credential location are recorded in
+[docs/google-cloud-setup.md](docs/google-cloud-setup.md).
+
 - The owner's own Google Cloud project with the Gmail and Calendar APIs
   (`gmail.googleapis.com`, `calendar-json.googleapis.com`) enabled; scopes
   `gmail.readonly` and `calendar.readonly`.

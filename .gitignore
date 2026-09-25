@@ -13,6 +13,8 @@ rules/mail.edn
 token*.json
 credentials*.json
 client_secret*.json
+google-oauth-client.json
+oauth-client*.json
 node_modules/
 
 # Local code-index cache
