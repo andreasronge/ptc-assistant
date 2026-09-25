@@ -5,10 +5,10 @@ launched by ptc on the private box. It asks only for `gmail.readonly` and
 `calendar.readonly` and has no tool that can send, modify, or delete. See
 [SPEC.md](../SPEC.md#upstream-own-gmail-and-calendar-mcp-server).
 
-| Tool | Returns |
-| --- | --- |
+| Tool              | Returns                                                                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `search_messages` | metadata for a Gmail query: ids, sender, parsed recipient addresses, subject, snippet, label ids, `List-Unsubscribe`/`Precedence`/`Auto-Submitted` |
-| `list_events` | events in a window over the primary and any named calendars, with attendee addresses, `with_others`, `has_agenda` |
+| `list_events`     | events in a window over the primary and any named calendars, with attendee addresses, `with_others`, `has_agenda`                                  |
 
 Lists return at most 100 items a page and 500 across all pages; follow
 `next_cursor` until it is null.
