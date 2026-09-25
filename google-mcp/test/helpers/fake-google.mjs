@@ -89,16 +89,27 @@ function mail(id, threadId, minute, from, to, subject, labelIds, extra = {}) {
         { name: 'From', value: from },
         { name: 'To', value: to },
         { name: 'Subject', value: subject },
-        ...Object.entries(headers).map(([name, value]) => ({ name, value })),
+        ...Object.entries(headers)
+          .filter(([, value]) => value !== undefined)
+          .map(([name, value]) => ({ name, value })),
       ],
     },
   }
 }
 
+/** Sized like real mail: a full snippet, several recipients, several labels. */
 function generated(index) {
-  return mail(`g${index}`, `h${index}`, index, `"Doe, Jane" <jane${index}@example.com>`, OWNER, `Subject ${index}`, [
-    'INBOX',
-  ])
+  const recipients = [OWNER, ...Array.from({ length: 6 }, (_, n) => `"Member ${n}" <member${n}@example.com>`)]
+  return mail(
+    `g${index}`,
+    `h${index}`,
+    index,
+    `"Doe, Jane" <jane${index}@example.com>`,
+    recipients.join(', '),
+    `Subject ${index}: ${'a fairly long subject line '.repeat(3)}`,
+    ['INBOX', 'UNREAD', 'CATEGORY_PERSONAL', 'IMPORTANT', 'Label_12345678'],
+    { snippet: 'x'.repeat(200), 'List-Unsubscribe': index % 2 ? '<https://news.example/u>' : undefined },
+  )
 }
 
 function calendarPage(calendarId, pageToken) {

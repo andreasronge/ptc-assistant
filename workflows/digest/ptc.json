@@ -3,29 +3,64 @@
   "version": 1,
   "workflow": {
     "components": [
-      {"id": "digest.workflow", "path": "workflow.clj", "dependencies": ["digest.rules", "kernel"]},
-      {"id": "digest.rules", "path": "rules.clj"},
-      {"library": "kernel"}
+      {
+        "id": "digest.workflow",
+        "path": "workflow.clj",
+        "dependencies": [
+          "digest.rules",
+          "kernel"
+        ]
+      },
+      {
+        "id": "digest.rules",
+        "path": "rules.clj"
+      },
+      {
+        "library": "kernel"
+      }
     ],
     "entry": "digest.workflow/run"
   },
   "missions": {
     "google": {
-      "components": [{"id": "digest.google", "path": "google.clj"}],
-      "providers": ["google"]
+      "components": [
+        {
+          "id": "digest.google",
+          "path": "google.clj"
+        }
+      ],
+      "providers": [
+        "google"
+      ]
     }
   },
   "providers": {
     "mission": [
-      {"name": "google", "config": {"allow": ["google.search", "google.threads", "google.sent", "google.events"]}}
+      {
+        "name": "google",
+        "config": {
+          "allow": [
+            "google.search",
+            "google.threads",
+            "google.sent",
+            "google.events"
+          ]
+        }
+      }
     ]
   },
-  "input": {"path": "example-input.json"},
+  "input": {
+    "path": "example-input.json"
+  },
   "limits": {
     "run_duration_ms": 900000,
     "workflow_timeout_ms": 900000,
     "evaluation_timeout_ms": 600000,
-    "mission_capability_calls": 400
+    "mission_capability_calls": 400,
+    "evaluation_heap_words": 10000000,
+    "evaluation_history_bytes": 16000000
   },
-  "labels": {"name": "ptc-assistant-digest"}
+  "labels": {
+    "name": "ptc-assistant-digest"
+  }
 }
