@@ -273,14 +273,20 @@ pending production step, and private credential location are recorded in
   `gmail.readonly` and `calendar.readonly`.
 - OAuth client type **Desktop app**: Google returns refresh tokens to
   installed-app clients by default and allows a loopback redirect on any
-  port. User type **External**, publishing status **In production,
-  unverified**. Never "Testing": refresh tokens then expire after 7 days.
+  port. User type **External**. Phase 0 may run in **Testing** with the owner
+  added as a test user; its refresh token expires after 7 days, so this is
+  only for the short probe. Before recurring phase 1 runs, publish the app
+  **In production, unverified** and perform consent again with
+  `prompt=consent` to obtain a new refresh token. Verify that the token
+  exchange actually returned one; do not rely on a token issued in Testing
+  for ongoing runs.
 - Sole-user apps are exempt from restricted-scope verification (Google lists
   "you are the only user of your app"). The owner clicks through the
   unverified-app warning once.
-- One-time consent: `google-mcp auth` runs the loopback flow on the box; the
-  owner reaches the loopback port through an SSH tunnel over Tailscale. The
-  refresh token is stored on the box, mode 0600, outside the repository.
+- Consent: `google-mcp auth` runs the loopback flow on the box; the owner
+  reaches the loopback port through an SSH tunnel over Tailscale. Run it for
+  the phase 0 probe and again after publishing. The refresh token is stored
+  on the box, mode 0600, outside the repository.
 - `invalid_grant` on refresh is terminal: the server fails every call with a
   clear "reconnect Google" error and the cron script pushes a re-consent
   notice. No retry loop (Google keeps 100 refresh tokens per client and
@@ -381,8 +387,8 @@ pending production step, and private credential location are recorded in
 
 | Phase | Delivers | Exit criterion | ptc_runner change |
 | --- | --- | --- | --- |
-| 0 — probes | Desktop OAuth client and consent; `google-mcp` with `search_messages` and `list_events`; one `ptc run` manifest that calls both over stdio with trimmed results | The manifest returns today's events and 50 message headers through ptc | none |
-| 1 — private | Build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model on the residue; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
+| 0 — probes | Desktop OAuth client and consent in Testing with the owner as test user; `google-mcp` with `search_messages` and `list_events`; one `ptc run` manifest that calls both over stdio with trimmed results | The manifest returns today's events and 50 message headers through ptc before the Testing token expires | none |
+| 1 — private | Publish the OAuth app In production and obtain fresh consent; build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model on the residue; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
 | 2 — public | One real claude.ai request logged through a throwaway tunnel (confirms 2026-07-28 and the OAuth discovery flow); Worker OAuth, tunnel, gateway serving `digest.today` and `ledger.query`; served-run traces | Digest read from claude.ai on the phone | served-run traces |
 | 3 — code mode | A served tool that runs model-written PTC-Lisp, read-only over mail, calendar, and ledger; served analysis workflow | Owner uses it for ad-hoc questions weekly | code-mode surface (own issue and security review) |
 

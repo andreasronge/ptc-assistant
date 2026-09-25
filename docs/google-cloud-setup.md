@@ -16,11 +16,22 @@ state and the safe handoff to the private box. It contains no credential values.
 | Declared scopes | `https://www.googleapis.com/auth/gmail.readonly`; `https://www.googleapis.com/auth/calendar.readonly` |
 | Branding domain | `ptc-runner.dev` |
 
+For the phase 0 probe, add only the owner's Google account as a test user on
+the [Audience page](https://console.cloud.google.com/auth/audience?project=ptc-assistant-509708)
+and run `google-mcp auth` while the app is in Testing. Google's
+[OAuth documentation](https://developers.google.com/identity/protocols/oauth2)
+says a refresh token issued for an External app in Testing expires after seven
+days unless the app requests only basic identity scopes; this app requests
+Gmail and Calendar scopes. Finish the probe within that window or repeat
+consent. Do not use the Testing token for recurring daily runs.
+
 The Branding page has the planned homepage, privacy policy, and terms URLs
 under `https://ptc-runner.dev/ptc-assistant/`. Those pages have been drafted in
 the `ptc_runner` site checkout but have **not been published**. Do not switch
 the OAuth app to **In production** until the owner approves the exact public
-wording and all three pages are live. Then verify the status on the
+wording and all three pages are live. Before phase 1, publish the app and run
+`google-mcp auth` again with `prompt=consent`; verify that the token exchange
+returns a new refresh token. Then verify the status on the
 [Audience page](https://console.cloud.google.com/auth/audience?project=ptc-assistant-509708)
 and update this table. The Google Cloud console is the source of truth if this
 dated snapshot differs from it.
@@ -38,10 +49,11 @@ The app will run on the owner's private box. Transfer the JSON to a private
 directory under `$PTC_ASSISTANT_DATA` over the owner's existing private
 connection, with the destination directory mode `0700` and the file mode
 `0600`. Configure `google-mcp` with the path to that file; the path is private
-runtime configuration, not a constant in source code. Keep the one-time
-OAuth refresh token in the same private data tree, also mode `0600`. The token
+runtime configuration, not a constant in source code. Keep the OAuth refresh
+token in the same private data tree, also mode `0600`. The token
 does not exist yet: it will be created by the future `google-mcp auth` flow
-after the owner grants consent. See [SPEC.md](../SPEC.md#google-oauth) for the
+after the owner grants consent. Replace the phase 0 Testing token after
+publishing. See [SPEC.md](../SPEC.md#google-oauth) for the
 loopback and SSH-tunnel design.
 
 Access to Gmail or Calendar is not granted merely by creating the OAuth
