@@ -8,6 +8,8 @@ data=${PTC_ASSISTANT_DATA:?PTC_ASSISTANT_DATA must name the private data directo
 # The pinned build from scripts/build-ptc.sh; PTC_BIN overrides it for development.
 ptc=${PTC_BIN:-$repo/releases/current/bin/ptc}
 export TZ=Europe/Stockholm
+# Cron and non-interactive SSH have no locale; Erlang then falls back to latin1.
+export LC_ALL=C.UTF-8
 umask 077
 
 [[ -x "$ptc" ]] || {
