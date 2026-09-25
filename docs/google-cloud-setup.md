@@ -12,18 +12,24 @@ state and the safe handoff to the private box. It contains no credential values.
 | Enabled APIs | Gmail API (`gmail.googleapis.com`); Google Calendar API (`calendar-json.googleapis.com`) |
 | Google Auth Platform audience | External |
 | Publishing status | **Testing** — production publishing is still pending |
+| Test users | Owner account only |
 | OAuth client | One Desktop app client, named `ptc-assistant desktop` |
 | Declared scopes | `https://www.googleapis.com/auth/gmail.readonly`; `https://www.googleapis.com/auth/calendar.readonly` |
 | Branding domain | `ptc-runner.dev` |
 
-For the phase 0 probe, add only the owner's Google account as a test user on
-the [Audience page](https://console.cloud.google.com/auth/audience?project=ptc-assistant-509708)
-and run `google-mcp auth` while the app is in Testing. Google's
+The owner's account was added as the sole test user on the
+[Audience page](https://console.cloud.google.com/auth/audience?project=ptc-assistant-509708).
+The owner granted the two read-only scopes in Testing, and the box stored a
+refresh token outside the checkout. The live phase 0 probe completed on
+25 September 2026: it returned 50 inbox message headers and zero events in
+the requested today window. The Calendar call succeeded; zero was the result
+for that window. The private result, trace, and inspection files were checked
+for owner-only permissions. Google's
 [OAuth documentation](https://developers.google.com/identity/protocols/oauth2)
 says a refresh token issued for an External app in Testing expires after seven
 days unless the app requests only basic identity scopes; this app requests
-Gmail and Calendar scopes. Finish the probe within that window or repeat
-consent. Do not use the Testing token for recurring daily runs.
+Gmail and Calendar scopes. Repeat consent if another Testing-mode run is needed
+after the token expires. Do not use the Testing token for recurring daily runs.
 
 The Branding page has the planned homepage, privacy policy, and terms URLs
 under `https://ptc-runner.dev/ptc-assistant/`. Those pages have been drafted in
@@ -45,21 +51,19 @@ contains a client secret even though the Desktop client ID itself is public.
 Do not print, paste, commit, or attach the JSON. Do not copy it into a
 temporary directory inside a checkout, even if `.gitignore` matches its name.
 
-The app will run on the owner's private box. Transfer the JSON to a private
-directory under `$PTC_ASSISTANT_DATA` over the owner's existing private
-connection, with the destination directory mode `0700` and the file mode
-`0600`. Configure `google-mcp` with the path to that file; the path is private
-runtime configuration, not a constant in source code. Keep the OAuth refresh
-token in the same private data tree, also mode `0600`. The token
-does not exist yet: it will be created by the future `google-mcp auth` flow
-after the owner grants consent. Replace the phase 0 Testing token after
-publishing. See [SPEC.md](../SPEC.md#google-oauth) for the
-loopback and SSH-tunnel design.
+The app runs on the owner's private box. The client JSON and refresh token are
+under `$PTC_ASSISTANT_DATA/google/`, with private directories (`0700`) and files
+(`0600`). The box has an owner-only environment file outside the checkout that
+sets `PTC_ASSISTANT_DATA`, `GOOGLE_MCP_CLIENT_FILE`, and
+`GOOGLE_MCP_TOKEN_FILE`. Source it before running `google-mcp auth` or
+`scripts/probe.sh`. These paths are runtime configuration, not constants in
+source code. Replace the phase 0 Testing token after publishing. See
+[SPEC.md](../SPEC.md#google-oauth) for the loopback and SSH-tunnel design.
 
-Access to Gmail or Calendar is not granted merely by creating the OAuth
-client. The owner still needs to run the consent flow. The app should request
-only the two read-only scopes above, and should never log the authorization
-code, access token, refresh token, client JSON, or message/calendar content.
+The owner granted Gmail and Calendar access through the consent flow. The app
+must keep requesting only the two read-only scopes above, and must never log
+the authorization code, access token, refresh token, client JSON, or
+message/calendar content.
 
 ## Before a commit or deployment
 
