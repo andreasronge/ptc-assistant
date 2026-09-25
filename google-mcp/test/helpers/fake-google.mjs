@@ -1,12 +1,48 @@
 /**
- * A fake Google that answers the few GETs the tools make, with messages and
- * events at reserved example domains. `count` controls how many messages
- * exist, so paging and the 500 cap can be exercised.
+ * A fake Google that answers the GETs the tools make, with addresses at
+ * reserved example domains only.
+ *
+ * The default mailbox is a fixed scenario for the digest rules (the owner is
+ * owner@example.org). With `count`, it instead generates that many plain
+ * inbox messages so paging and the 500 cap can be exercised.
  */
 
-export function fakeGoogle({ count = 3 } = {}) {
+import { ApiError } from '../../dist/google.js'
+
+const OWNER = 'Owner <owner@example.org>'
+const T0 = Date.UTC(2026, 8, 24, 8, 0, 0)
+
+/** The digest scenario: one line per case the rules must tell apart. */
+export const MAILBOX = [
+  // A known correspondent writing directly, unanswered: needs action (person + awaiting reply).
+  mail('m0', 't0', 0, '"Doe, Jane" <jane@example.com>', OWNER, 'Dinner on Friday?', ['INBOX', 'IMPORTANT']),
+  // A newsletter: bulk.
+  mail('m1', 't1', 1, 'Example News <no-reply@news.example>', OWNER, 'Weekly news', ['CATEGORY_PROMOTIONS'], {
+    'List-Unsubscribe': '<https://news.example/u>',
+  }),
+  // A stranger Google marked important: needs action (important).
+  mail('m2', 't2', 2, 'Pat <pat@example.com>', OWNER, 'Contract question', ['INBOX', 'IMPORTANT']),
+  // A known correspondent with the owner only on Cc: unsettled.
+  mail('m3', 't3', 3, 'jane@example.com', 'team@example.com', 'Notes from today', ['INBOX'], {
+    Cc: OWNER,
+  }),
+  // A receipt from a vendor: bulk (updates category) and a receipt candidate.
+  mail('m4', 't4', 4, 'Streaming <billing@streaming.example>', OWNER, 'Your receipt', ['CATEGORY_UPDATES'], {
+    snippet: 'Thanks for your payment. Total 129,00 kr',
+  }),
+  // A known correspondent whom the owner already answered: unsettled.
+  mail('m5', 't5', 5, 'Sam <sam@example.net>', OWNER, 'Quick favour', ['INBOX']),
+]
+
+export const SENT = [
+  mail('s1', 't5', 60, OWNER, 'Sam <sam@example.net>', 'Re: Quick favour', ['SENT']),
+  mail('s2', 's2', 70, OWNER, '"Doe, Jane" <jane@example.com>', 'Photos', ['SENT'], { Cc: 'team@example.com' }),
+]
+
+export function fakeGoogle({ count } = {}) {
   const requests = []
-  const messages = Array.from({ length: count }, (_, index) => message(index))
+  const inbox = count === undefined ? MAILBOX : Array.from({ length: count }, (_, index) => generated(index))
+  const all = [...inbox, ...SENT]
 
   return {
     requests,
@@ -15,14 +51,22 @@ export function fakeGoogle({ count = 3 } = {}) {
       const path = url.pathname
 
       if (path === '/gmail/v1/users/me/messages') {
+        const source = (url.searchParams.get('q') ?? '').startsWith('in:sent') ? SENT : inbox
         const max = Number(url.searchParams.get('maxResults'))
         const start = Number(url.searchParams.get('pageToken') ?? 0)
-        const page = messages.slice(start, start + max)
-        const next = start + max < messages.length ? String(start + max) : undefined
+        const page = source.slice(start, start + max)
+        const next = start + max < source.length ? String(start + max) : undefined
         return { messages: page.map((m) => ({ id: m.id, threadId: m.threadId })), nextPageToken: next }
       }
       const single = /^\/gmail\/v1\/users\/me\/messages\/([^/]+)$/.exec(path)
-      if (single) return messages.find((m) => m.id === decodeURIComponent(single[1]))
+      if (single) return all.find((m) => m.id === decodeURIComponent(single[1]))
+
+      const thread = /^\/gmail\/v1\/users\/me\/threads\/([^/]+)$/.exec(path)
+      if (thread) {
+        const messages = all.filter((m) => m.threadId === decodeURIComponent(thread[1]))
+        if (messages.length === 0) throw new ApiError('Gmail API answered 404', 404)
+        return { id: decodeURIComponent(thread[1]), messages }
+      }
 
       const events = /^\/calendar\/v3\/calendars\/([^/]+)\/events$/.exec(path)
       if (events) return calendarPage(decodeURIComponent(events[1]), url.searchParams.get('pageToken'))
@@ -32,22 +76,29 @@ export function fakeGoogle({ count = 3 } = {}) {
   }
 }
 
-function message(index) {
-  const bulk = index % 3 === 1
-  const headers = [
-    { name: 'From', value: bulk ? 'Example News <no-reply@news.example>' : `"Doe, Jane" <jane${index}@example.com>` },
-    { name: 'To', value: 'Owner <owner@example.org>, other@example.net' },
-    { name: 'Subject', value: `Subject ${index}` },
-  ]
-  if (bulk) headers.push({ name: 'List-Unsubscribe', value: '<https://news.example/u>' })
+function mail(id, threadId, minute, from, to, subject, labelIds, extra = {}) {
+  const { snippet = `About: ${subject}`, ...headers } = extra
   return {
-    id: `m${index}`,
-    threadId: `t${index}`,
-    labelIds: bulk ? ['CATEGORY_PROMOTIONS'] : ['INBOX', 'IMPORTANT'],
-    snippet: 'Can we meet &amp; talk? It&#39;s urgent',
-    internalDate: String(Date.UTC(2026, 8, 24, 8, 0, index)),
-    payload: { headers },
+    id,
+    threadId,
+    labelIds,
+    snippet: snippet.replace(/&/g, '&amp;'),
+    internalDate: String(T0 + minute * 60_000),
+    payload: {
+      headers: [
+        { name: 'From', value: from },
+        { name: 'To', value: to },
+        { name: 'Subject', value: subject },
+        ...Object.entries(headers).map(([name, value]) => ({ name, value })),
+      ],
+    },
   }
+}
+
+function generated(index) {
+  return mail(`g${index}`, `h${index}`, index, `"Doe, Jane" <jane${index}@example.com>`, OWNER, `Subject ${index}`, [
+    'INBOX',
+  ])
 }
 
 function calendarPage(calendarId, pageToken) {
@@ -75,12 +126,13 @@ function calendarPage(calendarId, pageToken) {
           status: 'confirmed',
           summary: 'Project sync',
           description: 'Agenda: plan',
-          start: { dateTime: '2026-09-25T13:00:00+02:00' },
-          end: { dateTime: '2026-09-25T14:00:00+02:00' },
+          start: { dateTime: '2026-09-25T09:30:00+02:00' },
+          end: { dateTime: '2026-09-25T11:00:00+02:00' },
           organizer: { email: 'owner@example.org', self: true },
           attendees: [
             { email: 'owner@example.org', self: true, organizer: true, responseStatus: 'accepted' },
             { email: 'Pat@Example.com', responseStatus: 'needsAction' },
+            { email: 'sam@example.net', responseStatus: 'accepted' },
             { email: 'room-1@resource.example', resource: true },
           ],
         },

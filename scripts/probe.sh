@@ -11,19 +11,6 @@
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
 
-# RFC 3339 midnight N days from today, with the offset in force at that midnight.
-day_start() {
-  local day stamp
-  if date -d today >/dev/null 2>&1; then
-    day=$(date -d "today +$1 day" +%Y-%m-%d)
-    stamp=$(date -d "$day 00:00" +%Y-%m-%dT00:00:00%z)
-  else
-    day=$(date -v+"$1"d +%Y-%m-%d)
-    stamp=$(date -j -f '%Y-%m-%d %H:%M' "$day 00:00" +%Y-%m-%dT00:00:00%z)
-  fi
-  printf '%s:%s' "${stamp:0:22}" "${stamp:22:2}"
-}
-
 project="$data/probe.ptc-project.json"
 [[ -f "$project" ]] || {
   echo "probe: $project is missing; run scripts/deploy.sh" >&2

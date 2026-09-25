@@ -1,6 +1,6 @@
 /**
- * The read-only tools. Phase 0 serves `search_messages` and `list_events`;
- * nothing here can send, modify, or delete.
+ * The read-only tools: search_messages, get_threads, list_sent_recipients,
+ * and list_events. Nothing here can send, modify, or delete.
  *
  * Every list is paged: at most 100 items per page and 500 across all pages
  * of one query. A cursor is bound to the arguments it was issued for.
@@ -11,13 +11,15 @@ import { fromJsonSchema, McpServer, type JsonSchemaType } from '@modelcontextpro
 
 import { EVENT_FIELDS, toEventRecord, type CalendarEvent } from './calendar.js'
 import { ToolError } from './errors.js'
-import { CALENDAR, GMAIL, type GoogleApi } from './google.js'
+import { ApiError, CALENDAR, GMAIL, type GoogleApi } from './google.js'
 import { METADATA_HEADERS, toRecord, type GmailMessage } from './mail.js'
 
 export const PAGE_LIMIT = 100
 export const TOTAL_LIMIT = 500
 const MAX_QUERY_CHARS = 512
 const MAX_CALENDARS = 10
+const MAX_THREADS = 50
+const THREAD_HEADERS = ['From', 'To', 'Cc'] as const
 const FETCH_CONCURRENCY = 8
 const DEFAULT_TIME_ZONE = 'Europe/Stockholm'
 
@@ -82,6 +84,123 @@ export function createServer(api: GoogleApi, identity: ServerIdentity): McpServe
       const more = typeof listed.nextPageToken === 'string'
       return structured({
         items: messages,
+        next_cursor:
+          more && returned < TOTAL_LIMIT
+            ? encodeCursor({ scope: position.scope, calendar: 0, pageToken: listed.nextPageToken!, returned })
+            : null,
+        truncated: more && returned >= TOTAL_LIMIT,
+      })
+    },
+  )
+
+  server.registerTool(
+    'get_threads',
+    {
+      title: 'Get threads',
+      description:
+        'The messages of up to 50 threads, oldest first, as metadata only: id, date, sender, recipients, label ' +
+        'ids. A message the owner sent carries the SENT label. A thread that no longer exists has missing true.',
+      annotations: readOnly,
+      _meta: meta,
+      inputSchema: schema({
+        type: 'object',
+        properties: {
+          thread_ids: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: MAX_THREADS },
+        },
+        required: ['thread_ids'],
+        additionalProperties: false,
+      }),
+      outputSchema: schema(closedObject({ items: { type: 'array', items: closedObject(THREAD_PROPERTIES) } })),
+    },
+    async (args: Record<string, unknown>) => {
+      const ids = threadIds(args.thread_ids)
+      const items = await mapBounded(ids, FETCH_CONCURRENCY, async (id) => {
+        const url = new URL(`${GMAIL}/threads/${encodeURIComponent(id)}`)
+        url.searchParams.set('format', 'metadata')
+        for (const header of THREAD_HEADERS) url.searchParams.append('metadataHeaders', header)
+        let thread: { messages?: GmailMessage[] }
+        try {
+          thread = (await api.get(url)) as { messages?: GmailMessage[] }
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 404) return { thread_id: id, missing: true, messages: [] }
+          throw error
+        }
+        const messages = (thread.messages ?? []).map((message) => {
+          const record = toRecord(message)
+          return {
+            id: record.id,
+            date: record.date,
+            from_address: record.from_address,
+            to_addresses: record.to_addresses,
+            cc_addresses: record.cc_addresses,
+            label_ids: record.label_ids,
+          }
+        })
+        messages.sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+        return { thread_id: id, missing: false, messages }
+      })
+      return structured({ items })
+    },
+  )
+
+  server.registerTool(
+    'list_sent_recipients',
+    {
+      title: 'List sent recipients',
+      description:
+        'Distinct To and Cc addresses of mail the owner sent in a window of epoch seconds (after inclusive, ' +
+        'before exclusive), lower-cased. Each page scans up to 100 sent messages and at most 500 per window; ' +
+        'union the pages. truncated means the window held more than 500 messages: split it.',
+      annotations: readOnly,
+      _meta: meta,
+      inputSchema: schema({
+        type: 'object',
+        properties: {
+          after: { type: 'integer', minimum: 0 },
+          before: { type: 'integer', minimum: 1 },
+          cursor: { type: 'string' },
+        },
+        required: ['after'],
+        additionalProperties: false,
+      }),
+      outputSchema: schema(
+        closedObject({
+          addresses: { type: 'array', items: STRING },
+          messages_scanned: { type: 'integer' },
+          next_cursor: NULLABLE_STRING,
+          truncated: BOOLEAN,
+        }),
+      ),
+    },
+    async (args: Record<string, unknown>) => {
+      const after = epochSeconds(args.after, 'after')
+      const before = args.before === undefined ? null : epochSeconds(args.before, 'before')
+      if (before !== null && before <= after) throw new ToolError('before must be later than after')
+      const query = `in:sent after:${after}${before === null ? '' : ` before:${before}`}`
+      const position = decodeCursor(args.cursor, scopeOf('list_sent_recipients', [query]))
+      const limit = Math.min(PAGE_LIMIT, TOTAL_LIMIT - position.returned)
+
+      const listUrl = new URL(`${GMAIL}/messages`)
+      listUrl.searchParams.set('q', query)
+      listUrl.searchParams.set('maxResults', String(limit))
+      if (position.pageToken !== null) listUrl.searchParams.set('pageToken', position.pageToken)
+      const listed = (await api.get(listUrl)) as { messages?: { id?: string }[]; nextPageToken?: string }
+      const ids = (listed.messages ?? []).map((message) => message.id).filter(isNonEmptyString)
+
+      const recipients = await mapBounded(ids, FETCH_CONCURRENCY, async (id) => {
+        const url = new URL(`${GMAIL}/messages/${encodeURIComponent(id)}`)
+        url.searchParams.set('format', 'metadata')
+        url.searchParams.append('metadataHeaders', 'To')
+        url.searchParams.append('metadataHeaders', 'Cc')
+        const record = toRecord((await api.get(url)) as GmailMessage)
+        return [...record.to_addresses, ...record.cc_addresses]
+      })
+
+      const returned = position.returned + ids.length
+      const more = typeof listed.nextPageToken === 'string'
+      return structured({
+        addresses: [...new Set(recipients.flat())].sort(),
+        messages_scanned: ids.length,
         next_cursor:
           more && returned < TOTAL_LIMIT
             ? encodeCursor({ scope: position.scope, calendar: 0, pageToken: listed.nextPageToken!, returned })
@@ -253,6 +372,22 @@ function calendarIds(value: unknown): string[] {
   return ids
 }
 
+function threadIds(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_THREADS) {
+    throw new ToolError(`thread_ids must list 1 to ${MAX_THREADS} thread ids`)
+  }
+  const ids = value.map((id) => requireString(id, 'thread_ids', 64))
+  if (ids.some((id) => !/^[A-Za-z0-9_-]+$/.test(id))) throw new ToolError('thread_ids must be Gmail thread ids')
+  return [...new Set(ids)]
+}
+
+function epochSeconds(value: unknown, field: string): number {
+  if (!Number.isSafeInteger(value) || (value as number) < 0 || (value as number) > 32_503_680_000) {
+    throw new ToolError(`${field} must be epoch seconds`)
+  }
+  return value as number
+}
+
 function requireString(value: unknown, field: string, maxChars: number): string {
   if (typeof value !== 'string' || value.trim() === '') throw new ToolError(`${field} must be a non-empty string`)
   if (value.length > maxChars) throw new ToolError(`${field} is longer than ${maxChars} characters`)
@@ -295,6 +430,22 @@ const MESSAGE_PROPERTIES = {
   list_unsubscribe: BOOLEAN,
   precedence: NULLABLE_STRING,
   auto_submitted: NULLABLE_STRING,
+}
+
+const THREAD_PROPERTIES = {
+  thread_id: STRING,
+  missing: BOOLEAN,
+  messages: {
+    type: 'array',
+    items: closedObject({
+      id: STRING,
+      date: NULLABLE_STRING,
+      from_address: NULLABLE_STRING,
+      to_addresses: STRINGS,
+      cc_addresses: STRINGS,
+      label_ids: STRINGS,
+    }),
+  },
 }
 
 const EVENT_PROPERTIES = {

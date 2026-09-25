@@ -7,12 +7,13 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
 
 import { CLIENT_FILE_ENV, loadClient, pathsFromEnvironment, TOKEN_FILE_ENV } from './config.js'
-import { ConfigError } from './errors.js'
+import { ConfigError, ReconnectError } from './errors.js'
 import { googleApi } from './google.js'
 import { createServer, IDENTITY } from './index.js'
 import { AccessTokens, runConsent } from './oauth.js'
 
 const DEFAULT_PORT = 8765
+const RECONNECT_EXIT = 3
 
 const USAGE = `google-mcp ${IDENTITY.version} -- read-only Gmail and Calendar MCP server over stdio
 
@@ -20,6 +21,9 @@ Usage:
   google-mcp                 Serve MCP 2026-07-28 over stdio.
   google-mcp auth [--port N] Run the loopback consent and store a refresh token.
                              Default port ${DEFAULT_PORT}; reach it through an SSH tunnel.
+  google-mcp check           Refresh an access token once. Exit 0 when Google
+                             accepts the stored token, ${RECONNECT_EXIT} when it must be
+                             reconnected, 1 on any other failure.
   google-mcp --help | --version
 
 Environment:
@@ -50,6 +54,16 @@ async function main(argv: readonly string[]): Promise<void> {
       port,
       say: (line) => process.stderr.write(`${line}\n`),
     })
+    return
+  }
+  if (argv[0] === 'check' && argv.length === 1) {
+    try {
+      await new AccessTokens(client, paths.tokenFile).get()
+      process.stderr.write('google-mcp: Google accepts the stored token\n')
+    } catch (error) {
+      process.stderr.write(`google-mcp: ${error instanceof Error ? error.message : 'check failed'}\n`)
+      process.exitCode = error instanceof ReconnectError ? RECONNECT_EXIT : 1
+    }
     return
   }
   if (argv.length > 0) throw new ConfigError(`unknown arguments: ${argv.join(' ')}`)

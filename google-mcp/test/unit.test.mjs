@@ -175,3 +175,27 @@ test('--help names both environment variables', () => {
   assert.match(result.stdout, /GOOGLE_MCP_TOKEN_FILE/)
   assert.equal(readFileSync(BINARY, 'utf8').startsWith('#!/usr/bin/env node'), true)
 })
+
+test('a rate-limited GET is retried after Retry-After, then succeeds', async () => {
+  const { googleApi } = await import('../dist/google.js')
+  const tokens = { get: async () => 'token', invalidate() {} }
+  const statuses = [429, 200]
+  const api = googleApi(tokens, async () =>
+    statuses.shift() === 429
+      ? new Response('{}', { status: 429, headers: { 'retry-after': '1' } })
+      : jsonResponse({ ok: true }),
+  )
+  assert.deepEqual(await api.get(new URL('https://gmail.googleapis.com/gmail/v1/users/me/labels')), { ok: true })
+})
+
+test('check exits 3 when the token must be reconnected', (t) => {
+  const dir = tempDir(t)
+  const client = join(dir, 'client.json')
+  writeFileSync(client, JSON.stringify({ installed: { client_id: 'a', client_secret: 'b' } }), { mode: 0o600 })
+  const result = spawnSync(process.execPath, [BINARY, 'check'], {
+    env: { PATH: process.env.PATH, GOOGLE_MCP_CLIENT_FILE: client, GOOGLE_MCP_TOKEN_FILE: join(dir, 'token.json') },
+    encoding: 'utf8',
+  })
+  assert.equal(result.status, 3)
+  assert.match(result.stderr, /reconnect Google/)
+})

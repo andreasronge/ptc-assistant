@@ -44,6 +44,16 @@
           "as": "google.events",
           "effect": "read",
           "error_feedback": "bounded"
+        },
+        "get_threads": {
+          "as": "google.threads",
+          "effect": "read",
+          "error_feedback": "bounded"
+        },
+        "list_sent_recipients": {
+          "as": "google.sent",
+          "effect": "read",
+          "error_feedback": "bounded"
         }
       },
       "ceilings": {

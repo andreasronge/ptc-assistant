@@ -10,5 +10,6 @@ import { serveStdio } from '@modelcontextprotocol/server/stdio'
 import { createServer, IDENTITY } from '../../dist/index.js'
 import { fakeGoogle } from './fake-google.mjs'
 
-const google = fakeGoogle({ count: Number(process.env.FAKE_GOOGLE_COUNT ?? 3) })
+const count = process.env.FAKE_GOOGLE_COUNT
+const google = fakeGoogle(count === undefined ? {} : { count: Number(count) })
 serveStdio(() => createServer(google, IDENTITY), { legacy: 'reject' })

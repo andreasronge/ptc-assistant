@@ -168,7 +168,8 @@ atomically, so a manual run during cron cannot corrupt it.
    `after:<cursor − 1 h>` and removes duplicates by message id. The first run
    covers the last 24 h. After missed days it covers at most 7 days, and the
    digest states how many days were skipped. The cursor advances only when
-   the run succeeds.
+   the run succeeds. A rerun on the same day starts from that day's first
+   cursor, so it rebuilds the day's digest instead of an empty one.
    Output: a JSON result stored as `$PTC_ASSISTANT_DATA/digest/<date>.json`
    plus a static HTML page rendered from it into `$PTC_ASSISTANT_DATA/www/`,
    served on the tailnet, and announced by a content-free push. The digest
@@ -212,8 +213,10 @@ before it is kept.
      headers are fetched (`format=metadata`, `metadataHeaders=To,Cc`);
    - Gmail's `IMPORTANT` label (Google's own classifier, trained on the
      owner's behaviour; see the bias note under Oracle);
-   - awaiting reply: last message in the thread is not the owner's and is
-     addressed directly to the owner;
+   - awaiting reply: the message is addressed directly (To) to one of the
+     owner's addresses (`owner.addresses` in the private rules), and the
+     thread's latest message is not the owner's (no `SENT` label, not from an
+     owner address);
    - receipt candidates: sender/subject patterns (English and Swedish, e.g.
      `receipt|invoice|renewal|subscription|payment|kvitto|faktura`) and an
      amount/currency pattern.
@@ -302,7 +305,8 @@ server, `google-mcp/`:
 | --- | --- |
 | `search_messages` | ids, thread ids, date, from, to, subject, snippet, label ids, and the headers the rules need (`List-Unsubscribe`, `Precedence`, `Auto-Submitted`) for a Gmail query, paginated and capped |
 | `get_message` | the same fields plus a size-capped plain-text body (only called for extraction) |
-| `list_sent_recipients` | distinct To/Cc addresses of sent mail after a timestamp (fetched with `format=metadata`, `metadataHeaders=To,Cc`) |
+| `list_sent_recipients` | distinct To/Cc addresses of sent mail in a window of epoch seconds (fetched with `format=metadata`, `metadataHeaders=To,Cc`) |
+| `get_threads` | up to 50 threads' messages as metadata (date, sender, recipients, labels), for "awaiting reply" and the oracle |
 | `list_labels` | label ids and names |
 | `list_events` | events in a time window over the given calendar ids (default primary): time, title, attendee addresses, `with_others`, location, has-agenda |
 | `get_event` | one event in full |
