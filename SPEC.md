@@ -100,18 +100,30 @@ Rules:
 
 - `PTC_RUNNER_SHA` in this repo names the exact ptc_runner main commit
   deployed. Deploying means changing that line in a commit.
-- `scripts/build-ptc.sh` checks out the SHA on the box, runs
-  `MIX_ENV=prod mix release`, installs into `releases/<sha>/`, and repoints a
-  `current` symlink. The box is Ubuntu 24.04 (checked 2026-09-25). ptc_runner's
+- `scripts/build-ptc.sh` checks out the SHA in a build checkout
+  (`~/.cache/ptc-assistant/ptc_runner`), builds with the commit's `mise`
+  toolchain (`MIX_ENV=prod mix do deps.get --only prod --check-locked +
+  release`), requires `ptc --version` to report that SHA as clean, installs
+  into `releases/<sha>/` (git-ignored), and repoints `releases/current` in one
+  rename. Scripts run `releases/current/bin/ptc`. The box is Ubuntu 24.04 (checked 2026-09-25). ptc_runner's
   standalone packaging script is macOS-only and exists to make a binary
   portable; a release built on the box that only runs there needs none of it.
-- Rollback: repoint `current` to a kept earlier build (keep the last 3).
+- Rollback: `scripts/build-ptc.sh --rollback <sha>` repoints `current` to a
+  kept earlier build (the last 3 are kept; `--list` shows them).
 - `ptc --version` prints the SHA, so traces are attributable to a build.
 
 ### Workflows (phase 1, run by cron via `ptc run`)
 
-Each is a ptc manifest in `workflows/<name>/`, run with `--trace-dir` and
-`--inspect`. **Every run is private**: even the rules name the people the
+Each is a ptc manifest in `workflows/<name>/`. **Deployment:** ptc resolves
+project paths only beneath the project file's directory and refuses absolute
+paths, `..`, and symlinked artifact layouts, so a private project file cannot
+point into the checkout. `scripts/deploy.sh` therefore copies `workflows/` and
+the built `google-mcp` into `$PTC_ASSISTANT_DATA/app/` (recording the commit in
+`app/DEPLOYED.json`; a dirty checkout is refused) and writes
+`$PTC_ASSISTANT_DATA/<name>.ptc-project.json` per workflow. All project files
+share the artifact root `$PTC_ASSISTANT_DATA/ptc/` with traces and inspection
+on. Editing the checkout changes nothing until the next deploy. **Every run is
+private**: even the rules name the people the
 owner writes to, so every run uses `--private-input` and `--private-output`.
 The output file is owner-only and kept off stdout, and the run writes private
 traces.
@@ -370,11 +382,11 @@ pending production step, and private credential location are recorded in
 
 ### Traces
 
-- All workflow runs are private and write private traces to
-  `$PTC_ASSISTANT_DATA/ptc/traces` (a ptc project artifact root), on an
+- All workflow runs are private and write private traces and inspection to
+  the shared project artifact root `$PTC_ASSISTANT_DATA/ptc/`, on an
   encrypted disk.
-- Rolling window: 30 days and 5 GB, whichever is hit first, enforced by a
-  separate `ptc prune` run from cron (#2086). The artifact root is a ptc
+- Rolling window: 30 days and 5 GB, whichever is hit first, enforced by
+  `scripts/prune.sh` (`ptc prune`, #2086, merged) from cron. The artifact root is a ptc
   project root, and the gateway writes served runs into the same root (#2087),
   so the Viewer, REPL, and prune see every run.
 - A trace cited by a report or issue gets a `keep/<run_ref>` marker and is
@@ -455,18 +467,19 @@ pending production step, and private credential location are recorded in
 
 ## ptc_runner dependencies
 
-To open in ptc_runner, described generically (single-operator remote
-deployment), never mentioning mail:
+Described generically (single-operator remote deployment), never mentioning
+mail. Status checked 2026-09-25; `PTC_RUNNER_SHA` pins `7f883aab4`, which
+includes every merged item:
 
-1. #2086 `ptc prune PROJECT.json` — age and size window over a project's run
+1. **Merged (#2095).** #2086 `ptc prune PROJECT.json` — age and size window over a project's run
    artifacts, whole runs at a time, `keep/<run_ref>` markers exempt.
-2. #2087 Served-run traces — an optional gateway `artifacts` section
+2. **Merged (#2094).** #2087 Served-run traces — an optional gateway `artifacts` section
    (`root`, `trace`, `inspection`) with the project artifact-root layout, for
    all tools; the operator's config authorizes it, never the endpoint.
    Private-policy templates stay refused. No per-caller identity: behind the
    Worker the gateway sees one bearer, so caller identity, if wanted, is the
    Worker's log, not the trace.
-3. #2088 `decision/request` provider (chat backend: #2089) — promote the Jev decision lab
+3. **Open; blocks week 3.** #2088 `decision/request` provider (chat backend: #2089) — promote the Jev decision lab
    (`scripts/labs/jev-decision/`) to a host-configurable provider with a
    vendor-neutral contract: state plus named boolean/choice/score questions in,
    per-question probability distributions out (probability may be `unknown`).
@@ -477,8 +490,12 @@ deployment), never mentioning mail:
 4. (Phase 3) Code-mode served surface.
 
 Related, not a dependency: #2091 (MCP OAuth issuer trailing-slash mismatch,
-found while evaluating Google's official servers); #2090 (record the model and
-provider that actually served each call).
+found while evaluating Google's official servers; merged as #2096, but those
+servers still need a Workspace account); #2090 (record the model and provider
+that actually served each call; open).
+
+If #2088 is not merged by week 3, the regex-only ledger (week 4, no model)
+moves ahead of the decision model.
 
 ## Open questions
 

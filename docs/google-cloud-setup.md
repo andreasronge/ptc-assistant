@@ -66,8 +66,8 @@ The app runs on the owner's private box. The client JSON and refresh token are
 under `$PTC_ASSISTANT_DATA/google/`, with private directories (`0700`) and files
 (`0600`). The box has an owner-only environment file outside the checkout that
 sets `PTC_ASSISTANT_DATA`, `GOOGLE_MCP_CLIENT_FILE`, and
-`GOOGLE_MCP_TOKEN_FILE`. Source it before running `google-mcp auth` or
-`scripts/probe.sh`. These paths are runtime configuration, not constants in
+`GOOGLE_MCP_TOKEN_FILE`. Source it before running `google-mcp auth`,
+`scripts/deploy.sh`, or `scripts/probe.sh`. These paths are runtime configuration, not constants in
 source code. Replace the phase 0 Testing token after publishing. See
 [SPEC.md](../SPEC.md#google-oauth) for the loopback and SSH-tunnel design.
 

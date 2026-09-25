@@ -45,8 +45,10 @@ pnpm run verify   # prettier, typecheck, tests
 
 The tests run the real tools over stdio against a fake Google
 (`test/helpers/fake-serve.mjs`). The same fake backs
-`workflows/ptc-host.fake.json`, so the ptc probe can run without credentials:
+`workflows/ptc-host.fake.json`, so the deployed ptc probe can run without
+credentials:
 
 ```sh
-PTC_ASSISTANT_DATA=/some/private/dir PTC_HOST_CONFIG=workflows/ptc-host.fake.json scripts/probe.sh
+export PTC_ASSISTANT_DATA=/some/private/dir
+scripts/deploy.sh && PROBE_HOST=fake scripts/probe.sh
 ```
