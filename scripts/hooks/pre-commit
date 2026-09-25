@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Installed with: git config core.hooksPath scripts/hooks
+set -euo pipefail
+scripts/check-public.sh
+if command -v gitleaks >/dev/null; then
+  gitleaks git --staged --no-banner --redact
+else
+  echo "pre-commit: gitleaks not installed; CI will still scan" >&2
+fi

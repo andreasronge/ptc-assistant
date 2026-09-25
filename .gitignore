@@ -1,0 +1,16 @@
+# Personal data never enters this public repository (see SPEC.md,
+# "Repository boundary"). It lives in $PTC_ASSISTANT_DATA on the box.
+*.env
+.env*
+state/
+traces/
+reports/
+releases/
+inspection/
+*.ptcins
+*.jsonl
+rules/mail.edn
+token*.json
+credentials*.json
+client_secret*.json
+node_modules/
