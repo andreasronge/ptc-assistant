@@ -100,15 +100,27 @@ cd "$data"
 "$ptc" run "$(basename "$project")" --private-input "$input" --private-output "$output" >/dev/null
 
 date_key=$(jq -r .date "$output")
-jq 'del(.state, .predictions)' "$output" | write_atomic "$dir/$date_key.json"
-jq '.predictions' "$output" >"$dir/predictions/$run_id.json"
-jq '.state.correspondents' "$output" | write_atomic "$correspondents"
+# Prepare every published file before changing the cursor. A failed render
+# leaves the prior page and state intact, so the next run can retry the window.
+staging=$(mktemp -d "$dir/.publish.XXXXXXXX")
+trap 'rm -rf "$staging"' EXIT
+jq 'del(.state, .predictions)' "$output" >"$staging/digest.json"
+jq '.predictions' "$output" >"$staging/predictions.json"
+jq '.state.correspondents' "$output" >"$staging/correspondents.json"
 jq --argjson now "$now" --arg today "$today" --arg cursor "$cursor" --argjson seen "$seen" \
   '{last_run: $now, sent_synced_until: $now, message_ids: .state.message_ids,
     day: $today, day_cursor: (if $cursor == "" then null else ($cursor | tonumber) end), day_seen: $seen}' \
-  "$output" | write_atomic "$state"
-node "$data/app/scripts/render-digest.mjs" "$dir/$date_key.json" | write_atomic "$data/www/$date_key.html"
-cp "$data/www/$date_key.html" "$data/www/index.html.tmp.$$" && mv -f "$data/www/index.html.tmp.$$" "$data/www/index.html"
+  "$output" >"$staging/state.json"
+node "$data/app/scripts/render-digest.mjs" "$staging/digest.json" >"$staging/digest.html"
+cp "$staging/digest.html" "$staging/index.html"
+
+mv -f "$staging/digest.json" "$dir/$date_key.json"
+mv -f "$staging/predictions.json" "$dir/predictions/$run_id.json"
+mv -f "$staging/correspondents.json" "$correspondents"
+mv -f "$staging/digest.html" "$data/www/$date_key.html"
+mv -f "$staging/index.html" "$data/www/index.html"
+# The cursor is the commit marker: write it only after both pages are ready.
+mv -f "$staging/state.json" "$state"
 rm -f "$input"
 # Raw results duplicate what was split out above; keep a month for debugging.
 find "$dir/runs" -name 'result-*.json' -mtime +30 -delete
