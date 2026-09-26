@@ -11,7 +11,7 @@ state and the safe handoff to the private box. It contains no credential values.
 | Project ID | `ptc-assistant-509708` |
 | Enabled APIs | Gmail API (`gmail.googleapis.com`); Google Calendar API (`calendar-json.googleapis.com`) |
 | Google Auth Platform audience | External |
-| Publishing status | **Testing** — production publishing is still pending |
+| Publishing status | **Testing** — retained for the short rules-only digest pilot |
 | Test users | Owner account only |
 | OAuth client | One Desktop app client, named `ptc-assistant desktop` |
 | Declared scopes | `https://www.googleapis.com/auth/gmail.readonly`; `https://www.googleapis.com/auth/calendar.readonly` |
@@ -29,7 +29,10 @@ for owner-only permissions. Google's
 says a refresh token issued for an External app in Testing expires after seven
 days unless the app requests only basic identity scopes; this app requests
 Gmail and Calendar scopes. Repeat consent if another Testing-mode run is needed
-after the token expires. Do not use the Testing token for recurring daily runs.
+after the token expires. On 26 September, the owner chose to remain the sole
+test user while evaluating the rules-only daily digest. This pilot will need
+re-consent if it continues past the Testing token's expiry; the daily runner
+reports that case as "Reconnect Google".
 
 A follow-up live Calendar check on 25 September used private probe inputs and
 outputs. The next-seven-days window returned four timed events from a shared
@@ -44,11 +47,15 @@ identifier and all real event data remain outside the checkout.
 
 The Branding page has the planned homepage, privacy policy, and terms URLs
 under `https://ptc-runner.dev/ptc-assistant/`. Those pages have been drafted in
-the `ptc_runner` site checkout but have **not been published**. Do not switch
-the OAuth app to **In production** until the owner approves the exact public
-wording and all three pages are live. Before phase 1, publish the app and run
-`google-mcp auth` again with `prompt=consent`; verify that the token exchange
-returns a new refresh token. Then verify the status on the
+the `ptc_runner` site checkout but have **not been published**. The owner does
+not want public pages for this pilot. Do not publish the drafts or switch the
+OAuth app to **In production** as part of the pilot. A later switch would avoid
+the seven-day Testing limit but remove Google's test-user allowlist; the
+tailnet-only digest would remain private. Before any switch, verify the current
+console requirements for this personal-use app and resolve the branding URLs.
+If the owner then chooses to switch, run `google-mcp auth` again with
+`prompt=consent` and verify that the token exchange returns a new refresh
+token. Verify the publishing status on the
 [Audience page](https://console.cloud.google.com/auth/audience?project=ptc-assistant-509708)
 and update this table. The Google Cloud console is the source of truth if this
 dated snapshot differs from it.

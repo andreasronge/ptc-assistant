@@ -343,13 +343,15 @@ pending production step, and private credential location are recorded in
   `gmail.readonly` and `calendar.readonly`.
 - OAuth client type **Desktop app**: Google returns refresh tokens to
   installed-app clients by default and allows a loopback redirect on any
-  port. User type **External**. Phase 0 may run in **Testing** with the owner
-  added as a test user; its refresh token expires after 7 days, so this is
-  only for the short probe. Before recurring phase 1 runs, publish the app
-  **In production, unverified** and perform consent again with
+  port. User type **External**. The short probe and initial rules-only digest
+  pilot run in **Testing** with the owner as sole test user. Its refresh token
+  expires after 7 days, so a pilot that continues longer needs fresh consent.
+  If the owner chooses durable unattended runs after the pilot, switch the app
+  to **In production, unverified** and perform consent again with
   `prompt=consent` to obtain a new refresh token. Verify that the token
   exchange actually returned one; do not rely on a token issued in Testing
-  for ongoing runs.
+  for runs beyond its expiry. The switch removes Google's test-user
+  allowlist, but does not change the tailnet-only digest access.
 - Sole-user apps are exempt from restricted-scope verification (Google lists
   "you are the only user of your app"). The owner clicks through the
   unverified-app warning once.
@@ -465,7 +467,7 @@ pending production step, and private credential location are recorded in
 | Phase | Delivers | Exit criterion | ptc_runner change |
 | --- | --- | --- | --- |
 | 0 — probes | Desktop OAuth client and consent in Testing with the owner as test user; `google-mcp` with `search_messages` and `list_events`; one `ptc run` manifest that calls both over stdio with trimmed results | The manifest returns today's events and 50 message headers through ptc before the Testing token expires | none |
-| 1 — private | Publish the OAuth app In production and obtain fresh consent; build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model in shadow mode; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
+| 1 — private | Start the rules-only digest pilot in Testing; after the owner evaluates it, publish the OAuth app In production and obtain fresh consent if durable unattended runs are wanted; build script; week 1 rules-only digest + predictions; week 2 oracle + category bootstrap; week 3 decision model in shadow mode; week 4 ledger and weekly rule proposals; `ptc prune`; nightly analysis; Viewer over Tailscale | Usefulness: two consecutive weeks reading the digest instead of Grok, clock starting week 1. Improvement: each kept layer beats the previous one in shadow mode; at least one reviewed ptc_runner issue from real traces | `ptc prune`; `decision/request` provider (by week 3) |
 | 2 — public | One real claude.ai request logged through a throwaway tunnel (confirms 2026-07-28 and the OAuth discovery flow); Worker OAuth, tunnel, gateway serving `digest.today` and `ledger.query`; served-run traces | Digest read from claude.ai on the phone | served-run traces |
 | 3 — code mode | A served tool that runs model-written PTC-Lisp, read-only over mail, calendar, and ledger; served analysis workflow | Owner uses it for ad-hoc questions weekly | code-mode surface (own issue and security review) |
 
