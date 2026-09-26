@@ -119,10 +119,10 @@ mv -f "$staging/predictions.json" "$dir/predictions/$run_id.json"
 mv -f "$staging/correspondents.json" "$correspondents"
 mv -f "$staging/digest.html" "$data/www/$date_key.html"
 mv -f "$staging/index.html" "$data/www/index.html"
-# The cursor is the commit marker: write it only after both pages are ready.
-mv -f "$staging/state.json" "$state"
 rm -f "$input"
 # Raw results duplicate what was split out above; keep a month for debugging.
 find "$dir/runs" -name 'result-*.json' -mtime +30 -delete
-
-jq -r '.counts | "digest: \(.messages) messages, \(.needs_action) need action, \(.events) events"' "$output"
+summary=$(jq -r '.counts | "digest: \(.messages) messages, \(.needs_action) need action, \(.events) events"' "$output")
+# The cursor is the commit marker: write it only after publication and cleanup.
+mv -f "$staging/state.json" "$state"
+printf '%s\n' "$summary"
