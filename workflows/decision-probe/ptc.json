@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ptc-runner.dev/schemas/ptc-application-manifest.schema.json",
+  "version": 1,
+  "workflow": {
+    "components": [
+      {"library": "cap"},
+      {"library": "decision"},
+      {"id": "probe.decision", "path": "workflow.clj", "dependencies": ["cap", "decision"]}
+    ],
+    "entry": "probe.decision/run"
+  },
+  "providers": {
+    "workflow": [{"name": "decisions"}]
+  },
+  "input": {
+    "value": {"batch_size": 10, "categories": {}, "messages": []}
+  },
+  "limits": {
+    "run_duration_ms": 300000,
+    "workflow_timeout_ms": 300000,
+    "evaluation_timeout_ms": 120000
+  },
+  "labels": {"name": "ptc-assistant-decision-probe"}
+}

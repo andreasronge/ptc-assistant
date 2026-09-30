@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ptc-runner.dev/schemas/ptc-host-config.schema.json",
+  "install": {
+    "decisions": {
+      "source": "decision_replay",
+      "installation_revision": "decision-probe-replay-v1",
+      "fixtures": "decision-probe/replay.ndjson",
+      "max_cost_per_call": {
+        "currency": "USD",
+        "amount": "0.01"
+      },
+      "max_total_tokens_per_call": 8000,
+      "accepts_data": [
+        "normal",
+        "private_inspection"
+      ]
+    }
+  }
+}

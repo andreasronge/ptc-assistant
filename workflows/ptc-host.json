@@ -6,6 +6,9 @@
     },
     "google_token_file": {
       "env": "GOOGLE_MCP_TOKEN_FILE"
+    },
+    "decisions_key": {
+      "env": "OPENROUTER_API_KEY"
     }
   },
   "install": {
@@ -61,6 +64,30 @@
         "max_catalog_tools": 8,
         "max_result_bytes": 262144
       }
+    },
+    "decisions": {
+      "source": "decision",
+      "model": "typesafe/jev-1.13",
+      "credential": "decisions_key",
+      "routing": {
+        "zdr": true,
+        "data_collection": "deny",
+        "allow_fallbacks": false
+      },
+      "usage_guarantees": {
+        "tokens": true,
+        "cost_currency": "USD"
+      },
+      "max_cost_per_call": {
+        "currency": "USD",
+        "amount": "0.01"
+      },
+      "max_total_tokens_per_call": 8000,
+      "accepts_data": [
+        "normal",
+        "private_inspection"
+      ],
+      "installation_revision": "jev-1.13-decisions-v1"
     }
   },
   "limits": {

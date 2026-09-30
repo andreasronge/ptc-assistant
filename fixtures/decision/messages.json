@@ -1,0 +1,624 @@
+{
+ "_comment": "Synthetic messages (reserved example domains); labels are the author's judgement. Not real mail.",
+ "categories": {
+  "person": "A human writing directly to the owner",
+  "finance": "Banks, invoices, payments, taxes, insurance",
+  "orders": "Orders, shipping, bookings, appointments",
+  "newsletters": "Newsletters, promotions, digests, social",
+  "notifications": "Accounts, security, calendar, code and document tools"
+ },
+ "messages": [
+  {
+   "id": "m01",
+   "from_address": "anna.berg@mail.example",
+   "subject": "Kan du skicka avtalet innan fredag?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m02",
+   "from_address": "mikael.lund@work.example",
+   "subject": "Re: Budget Q4 - can you review the numbers?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m03",
+   "from_address": "sara.holm@mail.example",
+   "subject": "Middag på lördag?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m04",
+   "from_address": "dev.lead@work.example",
+   "subject": "Need your decision on the API rename",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m05",
+   "from_address": "johan.ek@mail.example",
+   "subject": "Ring mig när du kan",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m06",
+   "from_address": "landlord@housing.example",
+   "subject": "Hyresavi och nycklar - svar behövs",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m07",
+   "from_address": "recruiter@talent.example",
+   "subject": "Quick question about your availability",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m08",
+   "from_address": "karin.wall@school.example",
+   "subject": "Föräldramöte - kan du komma?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "m09",
+   "from_address": "anna.berg@mail.example",
+   "subject": "Tack för igår!",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m10",
+   "from_address": "mikael.lund@work.example",
+   "subject": "FYI: notes from Tuesday's sync",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m11",
+   "from_address": "sara.holm@mail.example",
+   "subject": "Bilder från helgen",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m12",
+   "from_address": "team@work.example",
+   "subject": "Re: Re: lunch plans (reply all)",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m13",
+   "from_address": "johan.ek@mail.example",
+   "subject": "Fwd: funny article",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m14",
+   "from_address": "dev.lead@work.example",
+   "subject": "Merged: the API rename is done",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "m15",
+   "from_address": "noreply@bank.example",
+   "subject": "Faktura förfaller om 3 dagar - betala nu",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "m16",
+   "from_address": "alerts@bank.example",
+   "subject": "Verify this payment of 2 450,00 kr",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "m17",
+   "from_address": "noreply@bank.example",
+   "subject": "Ditt kontoutdrag för september är klart",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "m18",
+   "from_address": "billing@streaming.example",
+   "subject": "Your receipt from Example Streaming",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "m19",
+   "from_address": "invoices@cloud.example.com",
+   "subject": "Invoice 2026-0917 for September",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "m20",
+   "from_address": "noreply@taxagency.example",
+   "subject": "Deklaration: dags att granska och skicka in",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "m21",
+   "from_address": "service@insurance.example",
+   "subject": "Din försäkring förnyas - godkänn villkor",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "m22",
+   "from_address": "noreply@cardco.example",
+   "subject": "Purchase alert: 89.00 USD at Example Store",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "m23",
+   "from_address": "orders@shop.example",
+   "subject": "Your order #48213 has shipped",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "m24",
+   "from_address": "pickup@postal.example",
+   "subject": "Paket att hämta - hämtas senast 3 oktober",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "m25",
+   "from_address": "noreply@airline.example",
+   "subject": "Check-in is open for your flight to Berlin",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "m26",
+   "from_address": "booking@hotel.example",
+   "subject": "Booking confirmation - Stockholm, 12-14 Oct",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "m27",
+   "from_address": "orders@shop.example",
+   "subject": "Order #48213 delivered",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "m28",
+   "from_address": "noreply@clinic.example",
+   "subject": "Bekräfta din tid hos tandläkaren",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "m29",
+   "from_address": "returns@shop.example",
+   "subject": "Return label for order #47001 - ship by 5 Oct",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "m30",
+   "from_address": "newsletter@news.example",
+   "subject": "This week in tech: 10 stories",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m31",
+   "from_address": "deals@store.example",
+   "subject": "-40% helgen - bara för dig",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m32",
+   "from_address": "noreply@travel.example",
+   "subject": "Höstens bästa resmål",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m33",
+   "from_address": "digest@forum.example",
+   "subject": "Top posts you missed",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_FORUMS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m34",
+   "from_address": "hello@saas.example",
+   "subject": "New features in September",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m35",
+   "from_address": "newsletter@sport.example",
+   "subject": "Matchvecka: allt du behöver veta",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m36",
+   "from_address": "news@social.example",
+   "subject": "3 people viewed your profile",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_SOCIAL"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m37",
+   "from_address": "offers@bank.example",
+   "subject": "Nytt sparkonto med bonusränta",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "m38",
+   "from_address": "no-reply@accounts.example",
+   "subject": "Security alert: new sign-in from Chrome on Mac",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m39",
+   "from_address": "no-reply@accounts.example",
+   "subject": "Reset your password",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m40",
+   "from_address": "calendar@work.example",
+   "subject": "Invitation: Planning @ Mon 5 Oct 10:00 - respond",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "notifications"
+  },
+  {
+   "id": "m41",
+   "from_address": "calendar@work.example",
+   "subject": "Updated: Standup moved to 09:15",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m42",
+   "from_address": "noreply@github.example",
+   "subject": "[repo] Pull request #212 needs your review",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "notifications"
+  },
+  {
+   "id": "m43",
+   "from_address": "noreply@github.example",
+   "subject": "[repo] CI passed on main",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m44",
+   "from_address": "noreply@cloud.example.com",
+   "subject": "Your storage is 92% full",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m45",
+   "from_address": "noreply@docs.example",
+   "subject": "Anna commented on 'Q4 plan'",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "m46",
+   "from_address": "noreply@docs.example",
+   "subject": "You were mentioned: 'can you confirm the numbers?'",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "notifications"
+  },
+  {
+   "id": "m47",
+   "from_address": "alerts@status.example",
+   "subject": "Resolved: elevated error rates",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  }
+ ]
+}

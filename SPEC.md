@@ -474,7 +474,7 @@ pending production step, and private credential location are recorded in
 ## ptc_runner dependencies
 
 Described generically (single-operator remote deployment), never mentioning
-mail. Status checked 2026-09-25; `PTC_RUNNER_SHA` pins `7f883aab4`, which
+mail. Status checked 2026-09-29; `PTC_RUNNER_SHA` pins `96a1aea76`, which
 includes every merged item:
 
 1. **Merged (#2095).** #2086 `ptc prune PROJECT.json` — age and size window over a project's run
@@ -485,23 +485,27 @@ includes every merged item:
    Private-policy templates stay refused. No per-caller identity: behind the
    Worker the gateway sees one bearer, so caller identity, if wanted, is the
    Worker's log, not the trace.
-3. **Open; blocks week 3.** #2088 `decision/request` provider (chat backend: #2089) — promote the Jev decision lab
-   (`scripts/labs/jev-decision/`) to a host-configurable provider with a
-   vendor-neutral contract: state plus named boolean/choice/score questions in,
-   per-question probability distributions out (probability may be `unknown`).
-   Backends: Jev first, and a JSON-schema chat backend to keep the contract
-   honest and serve as the comparison. Shares provider config, credentials,
-   replay, cost budgets, admission, and trace/inspection records with
-   `llm/request`. The provider never thresholds; workflows do.
+3. **Merged (#2114).** #2088 `decision/request` provider — the Jev decision lab
+   promoted to a host-configurable provider with a vendor-neutral contract:
+   state plus named boolean/choice/score questions in, per-question
+   probability distributions out (probability, distribution and confidence may
+   be null). The first backend is alpha OpenRouter Decisions (`decision`
+   source, closed `routing` object for `zdr`, `data_collection`,
+   `allow_fallbacks`); `decision_replay` runs offline. Shares credentials,
+   replay, cost and token budgets, admission, and trace/inspection records with
+   `llm/request`, and records the served model. Each installation must declare
+   `max_cost_per_call` (recommended `0.01` USD) and `max_total_tokens_per_call`
+   (recommended `8000`); a call that exceeds either is settled in full and
+   fails `invalid_result` without retry, so the batch must be sized to fit. The
+   provider never thresholds; workflows do. The chat backend (#2089) is still
+   open; it will return null probabilities and an optional boolean `value`, so
+   workflows must not assume a probability is present.
 4. (Phase 3) Code-mode served surface.
 
 Related, not a dependency: #2091 (MCP OAuth issuer trailing-slash mismatch,
 found while evaluating Google's official servers; merged as #2096, but those
 servers still need a Workspace account); #2090 (record the model and provider
 that actually served each call; open).
-
-If #2088 is not merged by week 3, the regex-only ledger (week 4, no model)
-moves ahead of the decision model.
 
 ## Open questions
 

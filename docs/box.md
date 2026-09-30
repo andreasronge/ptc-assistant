@@ -36,6 +36,17 @@ scripts/digest.sh           # one digest run (run-daily.sh adds the push)
   checkout affects a run until then.
 - **Offline check:** `PROBE_HOST=fake scripts/probe.sh` and
   `DIGEST_HOST=fake scripts/digest.sh` use the fake Google.
+- **Decision model:** `workflows/ptc-host.json` installs the alpha Jev
+  `decisions` source (ZDR-only routing, no fallbacks, `0.01` USD and 8000
+  tokens per call). It is inert until a workflow selects it, and reads its key
+  from `OPENROUTER_API_KEY` in `assistant.env`. It admits `private_inspection`
+  data, so send it metadata only (see SPEC.md, Security). A call that exceeds
+  either per-call bound fails, so size each batch to fit.
+- **Decision probe:** `scripts/decision-probe.sh` scores Jev on the synthetic
+  messages in `fixtures/decision/` (offline replay by default;
+  `DECISION_LIVE=1` with `OPENROUTER_API_KEY` for a live call, about $0.0006).
+  Name the message in every question: a question without its message id got
+  the same answer for every message.
 - **Rules:** `$PTC_ASSISTANT_DATA/rules/mail.json` follows
   `rules/mail.example.json`; `owner.addresses` must list every address the
   owner receives mail at, and `calendars.extra_ids` any shared calendars.
