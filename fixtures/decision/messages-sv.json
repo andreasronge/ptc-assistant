@@ -1,0 +1,326 @@
+{
+ "_comment": "Synthetic Swedish messages (reserved example domains); labels are the author's judgement. Not real mail.",
+ "categories": {
+  "person": "A human writing directly to the owner",
+  "finance": "Banks, invoices, payments, taxes, insurance",
+  "orders": "Orders, shipping, bookings, appointments",
+  "newsletters": "Newsletters, promotions, digests, social",
+  "notifications": "Accounts, security, calendar, code and document tools"
+ },
+ "messages": [
+  {
+   "id": "s01",
+   "from_address": "lena.sjoberg@mail.example",
+   "subject": "Hinner du titta på offerten före onsdag?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "s02",
+   "from_address": "erik.nyman@work.example",
+   "subject": "Kan vi flytta mötet till torsdag eftermiddag?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "s03",
+   "from_address": "mamma@mail.example",
+   "subject": "Ringer du i helgen? Vi behöver prata om sommarstugan",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "s04",
+   "from_address": "grannen@mail.example",
+   "subject": "Tvättstugan - vem har bokat tisdag?",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "person"
+  },
+  {
+   "id": "s05",
+   "from_address": "olle.strand@mail.example",
+   "subject": "Tack för lånet av borrmaskinen!",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "s06",
+   "from_address": "hanna.lindqvist@work.example",
+   "subject": "Trevlig helg! Här är bilderna från kickoffen",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "s07",
+   "from_address": "styrelsen@brf.example",
+   "subject": "Protokoll från årsstämman (till kännedom)",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PERSONAL"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "person"
+  },
+  {
+   "id": "s08",
+   "from_address": "kundtjanst@bank.example",
+   "subject": "Betala fakturan senast 5 oktober för att undvika påminnelseavgift",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "s09",
+   "from_address": "noreply@bank.example",
+   "subject": "Ditt kort har spärrats - kontakta oss",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "s10",
+   "from_address": "noreply@bank.example",
+   "subject": "Kvitto: betalning till Elbolaget AB, 1 245,00 kr",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "s11",
+   "from_address": "noreply@skatt.example",
+   "subject": "Slutskatt: du får 3 200 kr tillbaka",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "finance"
+  },
+  {
+   "id": "s12",
+   "from_address": "service@forsakring.example",
+   "subject": "Skicka in intyg för din skadeanmälan senast fredag",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "finance"
+  },
+  {
+   "id": "s13",
+   "from_address": "paket@post.example",
+   "subject": "Ditt paket är på väg - leverans imorgon",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "s14",
+   "from_address": "paket@post.example",
+   "subject": "Avi: paketet kan hämtas hos ombudet inom 7 dagar",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "s15",
+   "from_address": "bokning@vardcentral.example",
+   "subject": "Påminnelse: tid hos vårdcentralen tisdag 10:30 - avboka senast 24 h innan",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": true,
+   "category": "orders"
+  },
+  {
+   "id": "s16",
+   "from_address": "order@butik.example",
+   "subject": "Tack för din beställning #90417",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "s17",
+   "from_address": "bokning@tag.example",
+   "subject": "Din biljett till Göteborg den 14 oktober",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "orders"
+  },
+  {
+   "id": "s18",
+   "from_address": "nyhetsbrev@tidning.example",
+   "subject": "Veckans viktigaste nyheter",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "s19",
+   "from_address": "erbjudande@butik.example",
+   "subject": "Höstrea: 30 % på allt - endast idag!",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "s20",
+   "from_address": "hej@apotek.example",
+   "subject": "Nytt hos oss: veckans tips och erbjudanden",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_PROMOTIONS"
+   ],
+   "list_unsubscribe": true,
+   "needs_action": false,
+   "category": "newsletters"
+  },
+  {
+   "id": "s21",
+   "from_address": "noreply@konto.example",
+   "subject": "Ny inloggning från en okänd enhet",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "s22",
+   "from_address": "noreply@konto.example",
+   "subject": "Ditt lösenord har ändrats",
+   "label_ids": [
+    "INBOX",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  },
+  {
+   "id": "s23",
+   "from_address": "kalender@work.example",
+   "subject": "Inbjudan: Planering torsdag 8 okt 13:00 - svara ja eller nej",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "IMPORTANT"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": true,
+   "category": "notifications"
+  },
+  {
+   "id": "s24",
+   "from_address": "noreply@github.example",
+   "subject": "[repo] Ny kommentar på din pull request #88",
+   "label_ids": [
+    "INBOX",
+    "UNREAD",
+    "CATEGORY_UPDATES"
+   ],
+   "list_unsubscribe": false,
+   "needs_action": false,
+   "category": "notifications"
+  }
+ ]
+}
