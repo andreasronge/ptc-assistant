@@ -188,6 +188,39 @@ test('a rate-limited GET is retried after Retry-After, then succeeds', async () 
   assert.deepEqual(await api.get(new URL('https://gmail.googleapis.com/gmail/v1/users/me/labels')), { ok: true })
 })
 
+test('a 403 rateLimitExceeded is retried; other 403s are not', async () => {
+  const { googleApi, ApiError } = await import('../dist/google.js')
+  const tokens = { get: async () => 'token', invalidate() {} }
+  const limited = () =>
+    new Response(JSON.stringify({ error: { errors: [{ reason: 'rateLimitExceeded' }] } }), {
+      status: 403,
+      headers: { 'retry-after': '1' },
+    })
+  const answers = [limited, () => jsonResponse({ ok: true })]
+  const api = googleApi(tokens, async () => answers.shift()())
+  assert.deepEqual(await api.get(new URL('https://gmail.googleapis.com/gmail/v1/users/me/labels')), { ok: true })
+
+  let calls = 0
+  const denied = googleApi(tokens, async () => {
+    calls += 1
+    return new Response(JSON.stringify({ error: { errors: [{ reason: 'insufficientPermissions' }] } }), {
+      status: 403,
+    })
+  })
+  await assert.rejects(
+    denied.get(new URL('https://gmail.googleapis.com/gmail/v1/users/me/labels')),
+    (error) => error instanceof ApiError && error.status === 403 && /insufficientPermissions/.test(error.message),
+  )
+  assert.equal(calls, 1)
+})
+
+test('fetch concurrency defaults to 4 and accepts 1 to 8 only', async () => {
+  const { fetchConcurrency } = await import('../dist/tools.js')
+  assert.equal(fetchConcurrency(undefined), 4)
+  assert.equal(fetchConcurrency('2'), 2)
+  for (const bad of ['0', '9', '2.5', 'many', '']) assert.equal(fetchConcurrency(bad), 4)
+})
+
 test('check exits 3 when the token must be reconnected', (t) => {
   const dir = tempDir(t)
   const client = join(dir, 'client.json')

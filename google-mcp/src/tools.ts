@@ -20,7 +20,13 @@ const MAX_QUERY_CHARS = 512
 const MAX_CALENDARS = 10
 const MAX_THREADS = 50
 const THREAD_HEADERS = ['From', 'To', 'Cc'] as const
-const FETCH_CONCURRENCY = 8
+// Gmail allows about 50 message reads a second per user; stay well under it on large scans.
+// GOOGLE_MCP_FETCH_CONCURRENCY (1 to 8) lowers it further for long backfills.
+export function fetchConcurrency(value: string | undefined): number {
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 8 ? parsed : 4
+}
+const FETCH_CONCURRENCY = fetchConcurrency(process.env.GOOGLE_MCP_FETCH_CONCURRENCY)
 const DEFAULT_TIME_ZONE = 'Europe/Stockholm'
 
 export interface ServerIdentity {
