@@ -44,9 +44,36 @@
     ]
   },
   "categories": {
-    "receipt": "Payment receipt or invoice",
-    "renewal": "Upcoming subscription renewal",
-    "personal": "Written by a person to the owner",
-    "bulk": "Newsletter or marketing"
-  }
+    "dev_ci": "CI and code-hosting notifications: failed runs, pull requests, issues",
+    "bills_admin": "Invoices, receipts, payments, tax and official letters",
+    "security_accounts": "Security alerts, new device or login notices",
+    "newsletters": "Newsletters, product updates and marketing",
+    "people": "A human writing directly to the owner",
+    "other": "None of the above"
+  },
+  "sender_rules": [
+    {
+      "domain": "ci.example.com",
+      "category": "dev_ci"
+    },
+    {
+      "domain": "billing.example.com",
+      "category": "bills_admin"
+    },
+    {
+      "domain": "accounts.example.com",
+      "category": "security_accounts"
+    },
+    {
+      "domain": "news.example.com",
+      "category": "newsletters"
+    }
+  ],
+  "ask_model_domains": [
+    "mixed.example.com"
+  ],
+  "free_mail_domains_are_people": [
+    "mail.example"
+  ],
+  "_categories_comment": "Draft with scripts/survey.sh: sender_rules settle a message by domain (exact or subdomain) without a model; ask_model_domains always go to the model; the rest goes to the model too."
 }

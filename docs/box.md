@@ -42,6 +42,14 @@ scripts/digest.sh           # one digest run (run-daily.sh adds the push)
   from `OPENROUTER_API_KEY` in `assistant.env`. It admits `private_inspection`
   data, so send it metadata only (see SPEC.md, Security). A call that exceeds
   either per-call bound fails, so size each batch to fit.
+- **Mail survey:** `scripts/survey.sh` counts senders, domains, Gmail labels and
+  subject patterns over the last N weeks (metadata only, no snippets or
+  bodies) to help draft email categories. It stages its own copy under
+  `$PTC_ASSISTANT_DATA/survey-app` from the deployed `google-mcp`, writes only
+  under `$PTC_ASSISTANT_DATA/survey/`, and prints counts. For a long scan use
+  `SURVEY_CHUNK_WEEKS=1 SURVEY_PAUSE_S=45 GOOGLE_MCP_FETCH_CONCURRENCY=2`: Gmail
+  answers 403 `rateLimitExceeded` to a fast sustained scan, and `google-mcp`
+  retries that with backoff.
 - **Decision probe:** `scripts/decision-probe.sh` scores Jev on the synthetic
   messages in `fixtures/decision/` (offline replay by default;
   `DECISION_LIVE=1` with `OPENROUTER_API_KEY` for a live call, about $0.0006).
